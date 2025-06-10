@@ -39,4 +39,4 @@ m = fossil_profit_opt(gen_dict, lmp_path,)
 solver = pyo.SolverFactory("gurobi")
 # solver.set_instance(m)
 solver.options["MIPGap"] = 0.01
-result = solver.solve(tee=True)
+result = solver.solve(m, tee=True)
