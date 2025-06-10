@@ -1,6 +1,7 @@
 import json
 import os
 import copy
+import pyomo.environ as pyo
 from fossil_npv_optimization import fossil_profit_opt
 from utils import read_gmlc_gen, save_gen_data, make_lmp_csv
 
@@ -34,4 +35,8 @@ bus_id = 101
 gen_dict = fossil_gens["101_STEAM_3"]
 lmp_path = os.path.join("Data", "all_bus_lmp.csv")
 m = fossil_profit_opt(gen_dict, lmp_path,)
-m.period[15].pprint()
+
+solver = pyo.SolverFactory("gurobi_persistent")
+solver.set_instance(m)
+solver.options["MIPGap"] = 0.01
+result = solver.solve(tee=True)
