@@ -16,7 +16,8 @@ def submit_job(gen_name, test_run=True):
         test = ""
 
     file_name = os.path.join(job_scripts_dir, f"run_PT_opt_{gen_name}{test}"  + ".sh")
-    conda_env_path = os.path.join(current_path, "..", "..", ".conda", "envs", "idaes")
+    # conda_env_path = os.path.join(current_path, "..", "..", ".conda", "envs", "idaes")
+    conda_env_path = "idaes"
     with open(file_name, "w") as f:
         f.write(
             "#!/bin/bash\n"
