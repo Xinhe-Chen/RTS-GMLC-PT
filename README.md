@@ -1,0 +1,1 @@
+This repo is for the price-taker optimization for fossil generators in the RTS-GMLC dataset.
