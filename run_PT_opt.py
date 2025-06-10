@@ -8,8 +8,8 @@ from utils import read_gmlc_gen, save_gen_data, make_lmp_csv
 """
 Make the fossil generator parameters
 """
-df = read_gmlc_gen(csv_path="Data/gen.csv")
-save_gen_data(df, save_opt=True)
+# df = read_gmlc_gen(csv_path="Data/gen.csv")
+# save_gen_data(df, save_opt=True)
 
 """
 Load the fossil generator parameters
