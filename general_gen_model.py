@@ -597,7 +597,7 @@ class PriceTakerRTSGMLC(ConcreteModel):
         """
         result = {
             "Time": [t for t in self.period],
-            "LMP": [pyo.value(getattr(self.period[t], "gen_"+self.gen_dict["name"]).LMP for t in self.period)]
+            "LMP": [pyo.value(getattr(self.period[t], "gen_"+self.gen_dict["name"].LMP) for t in self.period)]
         }
 
         if var_list is not None:
