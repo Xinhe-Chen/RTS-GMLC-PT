@@ -35,7 +35,9 @@ bus_id = 101
 gen_dict = fossil_gens["101_STEAM_3"]
 lmp_path = os.path.join("Data", "all_bus_lmp.csv")
 m = fossil_profit_opt(gen_dict, lmp_path,)
-# m.pprint()
+# m.period[10].pprint()
+# lmp = [pyo.value(getattr(m.period[t], "gen_"+gen_dict["name"]).LMP) for t in range(1,10)]
+# print(f"LMP: {lmp}")
 
 solver = pyo.SolverFactory("gurobi")
 # solver.set_instance(m)
