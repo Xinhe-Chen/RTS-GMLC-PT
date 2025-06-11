@@ -416,7 +416,7 @@ class PriceTakerRTSGMLC(ConcreteModel):
             hourly_revenue_expr = 0
             blk = self.period[t]
             for cost in operational_costs:
-                curr_cost = blk.find_component(cost)
+                curr_cost = getattr(blk, "gen_"+self.gen_dict["name"]).find_component(cost)
                 hourly_cost_expr += curr_cost if curr_cost is not None else 0
 
             # Add revenue streams for each block. If more than one block, may have
