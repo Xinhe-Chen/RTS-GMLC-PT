@@ -29,7 +29,7 @@ def submit_job(gen_name, test_run=True):
             + "export LD_LIBRARY_PATH=~/.conda/envs/regen/lib:$LD_LIBRARY_PATH \n"
             + "module load gurobi\n"
             + "module load ipopt/3.14.2 \n"
-            + f"python ./run_PT_opt.py"
+            + f"python ./run_PT_opt.py {gen_name}"
         )
 
     os.system(f"qsub {file_name}")

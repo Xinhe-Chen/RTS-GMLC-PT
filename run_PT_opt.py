@@ -1,6 +1,7 @@
 import json
 import os
 import copy
+import sys
 import pyomo.environ as pyo
 from fossil_npv_optimization import fossil_profit_opt
 from utils import read_gmlc_gen, save_gen_data, make_lmp_csv
@@ -31,8 +32,9 @@ These part is for extracting LMPs from the bus_detail.csv
 Select a generator for testing
 """
 fossil_gens = copy.deepcopy(all_gen_dict["fossil"])
-bus_id = 101
-gen_dict = fossil_gens["101_STEAM_3"]
+# bus_id = 101
+gen_name = sys.argv[1]
+gen_dict = fossil_gens[gen_name]
 lmp_path = os.path.join("Data", "all_bus_lmp.csv")
 m = fossil_profit_opt(gen_dict, lmp_path,)
 # m.period[10].pprint()
