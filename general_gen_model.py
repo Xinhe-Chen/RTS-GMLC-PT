@@ -410,9 +410,10 @@ class PriceTakerRTSGMLC(ConcreteModel):
 
         # Set net profit contribution expressions to 0
         # Here, the period is indexed by t
-        hourly_cost_expr = 0
-        hourly_revenue_expr = 0
+
         for t in self.set_time:
+            hourly_cost_expr = 0
+            hourly_revenue_expr = 0
             blk = self.period[t]
             for cost in operational_costs:
                 curr_cost = blk.find_component(cost)
