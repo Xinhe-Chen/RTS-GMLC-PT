@@ -132,7 +132,7 @@ class PriceTakerRTSGMLC(ConcreteModel):
         flowsheet_options : dict,
             Optional arguments needed for `flowsheet_func`
         '''
-        lmp_data = self._read_lmp()[0:720]
+        lmp_data = self._read_lmp()
 
         if hasattr(self, "period"):
             # Object may contain a multiperiod model. so raise an error
@@ -597,7 +597,7 @@ class PriceTakerRTSGMLC(ConcreteModel):
         """
         result = {
             "Time": [t for t in self.period],
-            "LMP": [getattr(self.period[t], "gen_"+self.gen_dict["name"]).LMP for t in self.period]
+            "LMP": [pyo.value(getattr(self.period[t], "gen_"+self.gen_dict["name"]).LMP for t in self.period)]
         }
 
         if var_list is not None:
