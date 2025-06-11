@@ -611,14 +611,16 @@ class PriceTakerRTSGMLC(ConcreteModel):
             for v in blk.component_data_objects(Var):
                 # Variable name will be of the form period[d, t].var_name
                 v_name = v.name.split(".", maxsplit=1)[-1]
-                result[v_name] = [pyo.value(self.period.find_component(v_name))]
+                result[v_name] = []
+                for t in self.period:
+                    result[v_name].append(pyo.value(self.period[t].find_component(v_name)))
 
             for v in blk.component_data_objects(Expression):
                 # Expression name will be of the form period[d, t].expr_name
                 v_name = v.name.split(".", maxsplit=1)[-1]
-                result[v_name] = [
-                    pyo_value(self.period.find_component(v_name))
-                ]
+                result[v_name] = []
+                for t in self.period:
+                    result[v_name].append(pyo_value(self.period[t].find_component(v_name)))
 
         # Return the data as a DataFrame
         return pd.DataFrame(result)
