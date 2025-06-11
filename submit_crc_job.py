@@ -37,7 +37,7 @@ def submit_job(gen_name, test_run=True):
 
 if __name__ == "__main__":
     
-    gen_path = os.path.join("Data", "gen_dict.csv")
+    gen_path = os.path.join("Data", "gen_dict.json")
     with open(gen_path, 'rb') as f:
         gen_dict = json.load(f)
     gen_names = list(gen_dict["fossil"].keys())
