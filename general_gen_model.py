@@ -596,8 +596,8 @@ class PriceTakerRTSGMLC(ConcreteModel):
                 and expressions will be returned, by default None
         """
         result = {
-            "Time": {t for t in self.period},
-            "LMP": {getattr(self.period[t], "gen_"+self.gen_dict["name"]).LMP for t in self.period}
+            "Time": [t for t in self.period],
+            "LMP": [getattr(self.period[t], "gen_"+self.gen_dict["name"]).LMP for t in self.period]
         }
 
         if var_list is not None:
