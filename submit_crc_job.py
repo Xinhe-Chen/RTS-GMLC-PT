@@ -37,10 +37,9 @@ def submit_job(gen_name, test_run=True):
 
 if __name__ == "__main__":
     
-    # gen_path = os.path.join("Data", "gen_dict.csv")
-    # with open(gen_path, 'rb') as f:
-    #     gen_dict = json.load(f)
-    # gen_names = list(gen_dict["fossil"].keys())
-
-    gen_name = "101_STEAM_3"
-    submit_job(gen_name)
+    gen_path = os.path.join("Data", "gen_dict.csv")
+    with open(gen_path, 'rb') as f:
+        gen_dict = json.load(f)
+    gen_names = list(gen_dict["fossil"].keys())
+    for n in gen_names:
+        submit_job(n, test_run=False)

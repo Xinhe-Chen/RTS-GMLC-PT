@@ -44,4 +44,4 @@ solver = pyo.SolverFactory("gurobi")
 solver.options["MIPGap"] = 0.005
 solver.solve(m, tee=True)
 
-m.get_results("gen_" + gen_dict["name"]).to_csv("test_result.csv", index=False)
+m.get_results("gen_" + gen_dict["name"]).to_csv(f"results/gen_{gen_dict["name"]}_result.csv", index=False)
