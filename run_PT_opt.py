@@ -40,4 +40,6 @@ m = fossil_profit_opt(gen_dict, lmp_path,)
 solver = pyo.SolverFactory("gurobi")
 # solver.set_instance(m)
 solver.options["MIPGap"] = 0.01
-result = solver.solve(m, tee=True)
+solver.solve(m, tee=True)
+
+m.get_results("gen_" + gen_dict["name"]).to_csv("test_result.csv", index=False)

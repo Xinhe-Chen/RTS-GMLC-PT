@@ -1,10 +1,8 @@
-from typing import Optional, Union, Callable, List
 import re
 import numpy as np
 import pandas as pd
 import pyomo.environ as pyo
 import idaes.logger as idaeslog
-from idaes.apps.grid_integration import DesignModel, OperationModel, PriceTakerModel
 from idaes.core.util.config import ConfigurationError
 from pyomo.environ import (
     ConcreteModel,
@@ -21,7 +19,7 @@ from pyomo.environ import (
     value as pyo_value,
 )
 # from util_gen_model import build_renewable_gen_model, build_fossil_gen_model
-from utils import gen_startup_cost, capacity_limits, ramping_limits, startup_shutdown_constraints
+from Unit_Commitment import capacity_limits, ramping_limits, startup_shutdown_constraints
 
 _logger = idaeslog.getLogger(__name__)
 
@@ -544,35 +542,95 @@ class PriceTakerRTSGMLC(ConcreteModel):
             ) from msg
 
 
-    def get_results(self):
-        return
+    def _get_num_startups(self, op_block_name):
+        """
+        Get the number of startups in the result
+        """
+        op_blks = self._get_operation_blocks(
+            blk_name=op_block_name, attribute_list=["startup"]
+        )
 
+        startups = {t: op_blks[t].startup.value for t in self.period}
 
-
-
-        # if self.gen_dict["gen_type"] in ["PV", "WIND"]:
-        #     m.gen_model = build_renewable_gen_model(m)
-        #     # build multiperiod model
-        #     m.build_multiperiod_model(
-        #     flowsheet_func=build_renewable_gen_model,
-        #     )
-        #     # if renewable gen, m do not have binary variables and use ipopt.
-        #     solver = pyo.SolverFactory("ipopt")
-
-        # if self.gen_dict["gen_type"] in ["CT", "CC", 'STEAM']:
-        #     m.gen_model = build_fossil_gen_model(m)
-        #     # build multiperiod model
-        #     m.build_multiperiod_model(
-        #     flowsheet_func=build_fossil_gen_model,
-        #     )
-        #     # if fossil gen, m has binary variables and use gurobi.
-        #     solver = pyo.SolverFactory("gurobi_persistent")
+        try:
+            total_startups = sum(startups[t].values for t in self.period)
+            return total_startups
         
+        except TypeError:
+            # Either the problem is not solved, or the startup variable is not used
+            _logger.warning(
+                "startup variable value is not available. \n\t Either the model "
+                "is not solved, or the startup variable maynot be used in the model."
+            )
+            return None
+        
+    
+    def _get_num_shutdowns(self, op_block_name):
+        """Returns the number of times the given operation block undergoes shutdown"""
+        op_blks = self._get_operation_blocks(
+            blk_name=op_block_name, attribute_list=["shutdown"]
+        )
+        shutdowns = {t: op_blks[t].shutdown.value for t in self.period}
+
+        # pylint: disable = not-an-iterable
+        try:
+            total_shutdowns = sum(shutdowns[t].value for t in self.period)
+            return total_shutdowns
+        
+        except TypeError:
+            # Either the problem is not solved, or the shutdown variable is not used
+            _logger.warning(
+                "startup variable value is not available. \n\t Either the model "
+                "is not solved, or the startup variable maynot be used in the model."
+            )
+            return None
+    
+
+    def _get_operation_var_values(self, var_list=None):
+        """
+        Returns a DataFrame of all operation values
+
+        Args:
+            var_list : list, optional
+                List of variables/expressions. If not specified, values of all variables
+                and expressions will be returned, by default None
+        """
+        result = {
+            "Time": {t for t in self.period},
+            "LMP": {self.period[t].LMP for t in self.period}
+        }
+
+        if var_list is not None:
+            # Return the values of selected variables and/or expressions
+            for v in var_list:
+                result[v] = [pyo_value(self.period.find_component(v))]
+
+        else:
+            # Return the values of all variables and expressions
+            blk = self.period[1]  # Reference block to extract variable names
+            for v in blk.component_data_objects(Var):
+                # Variable name will be of the form period[d, t].var_name
+                v_name = v.name.split(".", maxsplit=1)[-1]
+                result[v_name] = [self.period.find_component(v_name).value]
+
+            for v in blk.component_data_objects(Expression):
+                # Expression name will be of the form period[d, t].expr_name
+                v_name = v.name.split(".", maxsplit=1)[-1]
+                result[v_name] = [
+                    pyo_value(self.period.find_component(v_name))
+                ]
+
+        # Return the data as a DataFrame
+        return pd.DataFrame(result)
 
 
-        # solver.set_instance(m)
-        # solver.options["MIPGap"] = 0.01
-        # result = solver.solve(tee=True)
+    def get_results(self, op_block_name, var_list=None):
+        startups = self._get_num_startups(op_block_name)
+        shutdowns = self._get_num_shutdowns(op_block_name)
 
-        # return
+        _logger.info(f"startups: {startups}")
+        _logger.info(f"shutdowns: {shutdowns}")
 
+        df_result = self._get_operation_var_values()
+        
+        return df_result

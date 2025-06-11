@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 import pyomo.environ as pyo
 import idaes.logger as idaeslog
-from idaes.apps.grid_integration import DesignModel, OperationModel, PriceTakerModel
+
+_logger = idaeslog.getLogger(__name__)
 
 def build_gen_design_model(m, gen_dict):
     '''
