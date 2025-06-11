@@ -550,10 +550,10 @@ class PriceTakerRTSGMLC(ConcreteModel):
             blk_name=op_block_name, attribute_list=["startup"]
         )
 
-        startups = {t: op_blks[t].startup.values() for t in self.period}
+        startups = {t: pyo.value(op_blks[t].startup) for t in self.period}
 
         try:
-            total_startups = sum(startups[t].values() for t in self.period)
+            total_startups = sum(startups[t] for t in self.period)
             return total_startups
         
         except TypeError:
@@ -570,11 +570,11 @@ class PriceTakerRTSGMLC(ConcreteModel):
         op_blks = self._get_operation_blocks(
             blk_name=op_block_name, attribute_list=["shutdown"]
         )
-        shutdowns = {t: op_blks[t].shutdown.values() for t in self.period}
+        shutdowns = {t: pyo.value(op_blks[t].shutdown) for t in self.period}
 
         # pylint: disable = not-an-iterable
         try:
-            total_shutdowns = sum(shutdowns[t].value() for t in self.period)
+            total_shutdowns = sum(shutdowns[t] for t in self.period)
             return total_shutdowns
         
         except TypeError:
@@ -611,7 +611,7 @@ class PriceTakerRTSGMLC(ConcreteModel):
             for v in blk.component_data_objects(Var):
                 # Variable name will be of the form period[d, t].var_name
                 v_name = v.name.split(".", maxsplit=1)[-1]
-                result[v_name] = [self.period.find_component(v_name).values()]
+                result[v_name] = [pyo.value(self.period.find_component(v_name))]
 
             for v in blk.component_data_objects(Expression):
                 # Expression name will be of the form period[d, t].expr_name
