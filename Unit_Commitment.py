@@ -141,7 +141,7 @@ def startup_shutdown_constraints(
         Eq 55 in Ben's paper
         '''
         return (
-            sum(blk.startup_type[t, k] for k in key_list) <= op_blocks[t].startup
+            sum(blk.startup_type[t, k] for k in key_list) == op_blocks[t].startup
         )
     
     @blk.Constraint(set_time)
