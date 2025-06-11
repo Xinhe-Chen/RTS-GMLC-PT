@@ -437,7 +437,7 @@ class PriceTakerRTSGMLC(ConcreteModel):
             self._get_valid_block_name(op_block_name) + "_startup_shutdown"
             )
             start_shut_blk = getattr(self, start_shut_blk_name)
-            self.period[t].hourly_startup_cost = start_shut_blk.startup_cost_at_t[t]
+            self.period[t].hourly_startup_cost = pyo.Expression(expr=start_shut_blk.startup_cost_at_t[t])
 
             # Set net cash inflow expression
             self.period[t].net_hourly_cash_inflow = Expression(
