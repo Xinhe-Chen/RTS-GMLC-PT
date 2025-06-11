@@ -36,8 +36,8 @@ gen_dict = fossil_gens["101_STEAM_3"]
 lmp_path = os.path.join("Data", "all_bus_lmp.csv")
 m = fossil_profit_opt(gen_dict, lmp_path,)
 m.pprint()
-print("yes")
-# solver = pyo.SolverFactory("gurobi")
-# # solver.set_instance(m)
-# solver.options["MIPGap"] = 0.01
-# result = solver.solve(m, tee=True)
+
+solver = pyo.SolverFactory("gurobi")
+# solver.set_instance(m)
+solver.options["MIPGap"] = 0.01
+result = solver.solve(m, tee=True)
