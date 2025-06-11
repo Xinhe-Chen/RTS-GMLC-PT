@@ -65,7 +65,7 @@ def build_fossil_gen_operation_model(m, design_blk, gen_dict):
     slope = gen_dict["cost_curve"]["slope"]
     intercept = gen_dict["cost_curve"]["intercept"]
 
-    m.vom = pyo.Expression(expr=slope * m.power + intercept*m.op_mode)
+    m.vom = pyo.Expression(expr=slope * m.power + intercept * m.op_mode)
 
     return
 
