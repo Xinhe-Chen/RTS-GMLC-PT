@@ -9,6 +9,8 @@ __pycache__/
 .env/
 *.env
 
+# Ignore csv files
+*.csv
 # Ignore OS or IDE junk
 .DS_Store
 .idea/
