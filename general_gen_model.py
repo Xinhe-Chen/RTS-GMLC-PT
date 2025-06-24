@@ -438,12 +438,14 @@ class PriceTakerRTSGMLC(ConcreteModel):
             )
             start_shut_blk = getattr(self, start_shut_blk_name)
             self.period[t].hourly_startup_cost = pyo.Expression(expr=start_shut_blk.startup_cost_at_t[t])
+            self.period[t].hourly_shutdown_cost = pyo.Expression(expr=start_shut_blk.shutdown_cost_at_t[t])
 
             # Set net cash inflow expression
             self.period[t].net_hourly_cash_inflow = Expression(
                 expr=self.period[t].total_hourly_revenue
                 - self.period[t].total_hourly_cost
                 - self.period[t].hourly_startup_cost
+                - self.period[t].hourly_shutdown_cost
             )
 
         # Logger info for where constraint is located on the model

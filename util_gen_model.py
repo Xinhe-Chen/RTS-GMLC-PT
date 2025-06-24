@@ -68,11 +68,3 @@ def build_fossil_gen_operation_model(m, design_blk, gen_dict):
     m.vom = pyo.Expression(expr=slope * m.power + intercept * m.op_mode)
 
     return
-
-
-def build_renewable_gen_operation_model(m):
-    '''
-    build renewable generator operation models
-    '''
-
-    return

@@ -81,7 +81,10 @@ def startup_shutdown_constraints(
     # this is a little different. hot start = warm time - hot time, warm start = cold time - warm time. For cold startup, no need to add constraint due to the non-decreasing property.
     # Reference paper: Tight and compact MILP formulation for the thermal unit commitment problem.
     blk.startup_duration = pyo.Param(key_list, initialize = {key_list[0]: gen_dict['start_up_time_hot'], key_list[1]: gen_dict['start_up_time_warm'], key_list[2]: gen_dict['start_up_time_cold']})
-    blk.startup_cost_at_t = pyo.Var(set_time, initialize = {t:0 for t in set_time} )
+    blk.startup_cost_at_t = pyo.Var(set_time, initialize = {t:0 for t in set_time})
+    blk.shutdown_cost_at_t = pyo.Var(set_time, initialize = {t:0 for t in set_time} )
+    blk.fixed_startup_cost = pyo.Param(initialize = 0, mutuable = True)
+    blk.fixed_shutdown_cost = pyo.Param(initialize = 0, mutuable = True)
 
     @blk.Constraint(set_time)
     def binary_relationship_con(_, t):
@@ -150,5 +153,14 @@ def startup_shutdown_constraints(
         Eq 56 in Ben's paper
         '''
         return (
-            sum(blk.startup_cost[k] * blk.startup_type[t, k] for k in key_list) == blk.startup_cost_at_t[t]
+            sum(blk.startup_cost[k] * blk.startup_type[t, k] for k in key_list) + blk.fixed_startup_cost * op_blocks[t].startup == blk.startup_cost_at_t[t]
+        )
+    
+    @blk.Constraint(set_time)
+    def shut_down_cost_expr(_, t):
+        '''
+        fixed shutdown costs
+        '''
+        return (
+            blk.fixed_shutdown_cost * op_blocks[t].shutdown == blk.shutdown_cost_at_t[t]
         )
