@@ -1,0 +1,140 @@
+import sys
+import os
+import json
+import copy
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import pyomo.environ as pyo
+import pandas as pd
+import idaes.logger as idaeslog
+from idaes.apps.grid_integration import DesignModel, OperationModel
+from idaes.apps.grid_integration import RHPTModel
+from idaes.apps.grid_integration import RHPTForecaster
+from util_gen_model import build_gen_design_model, build_fossil_gen_operation_model
+from general_gen_model import PriceTakerRTSGMLC
+
+_logger = idaeslog.getLogger(__name__)
+
+
+def build_fossil_gen_flowsheet(m, gen_dict):
+    """Builds the fossil generator flowsheet"""
+
+    setattr(m, 
+            "gen_" + gen_dict["name"],
+            OperationModel(
+                model_func=build_fossil_gen_operation_model,
+                model_args={"gen_dict": gen_dict},
+        )
+    )
+
+    m.power_to_grid = pyo.Var(within=pyo.NonNegativeReals)
+    m.calculate_power_to_grid = pyo.Constraint(
+        expr=m.power_to_grid == getattr(m, "gen_" + gen_dict["name"]).power
+    )
+    m.elec_revenue = pyo.Expression(expr=getattr(m, "gen_"+gen_dict["name"]).LMP * m.power_to_grid)
+
+
+def fossil_profit_opt_scenario(forecaster, gen_dict):
+    """Builds and returns an instance of the price-taker model"""
+
+    m = RHPTModel(forecaster=forecaster)
+
+    # forecast the price signal at t = 0
+    lmp_data = forecaster.forecast_prices(pointer=0)
+    scenario_lmp_data = lmp_data[0]
+
+    # just do one scenario for now
+    scenario_model = m.build_PT_model(
+        LMP_data=scenario_lmp_data,
+        design_func=build_gen_design_model,
+        gen_dict=gen_dict,
+        flowsheet_func=build_fossil_gen_flowsheet,
+        flowsheet_options={"gen_dict": gen_dict},
+    )
+
+    # Add operation limits
+    scenario_model.add_capacity_limits(
+        op_block_name="gen_" + gen_dict["name"],
+        commodity="power",
+        capacity=scenario_model.gen_design.gen_capacity,
+        op_range_lb=gen_dict["min_p"]/gen_dict["max_p"],
+    )
+
+    # Add minimum uptime-downtime constraints on NGCC
+    scenario_model.add_startup_shutdown(
+        op_block_name="gen_" + gen_dict["name"],
+        up_time=gen_dict["min_up_time"],
+        down_time=gen_dict["min_down_time"],
+    )
+
+    # Add ramping constraints on NGCC
+    scenario_model.add_ramping_limits(
+        op_block_name="gen_" + gen_dict["name"],
+        commodity="power",
+        capacity=scenario_model.gen_design.gen_capacity,
+        startup_rate=gen_dict["min_p"]/gen_dict["max_p"],
+        shutdown_rate=gen_dict["min_p"]/gen_dict["max_p"],
+        rampdown_rate=min(gen_dict["ramp"], gen_dict["max_p"])/gen_dict["max_p"],
+        rampup_rate=min(gen_dict["ramp"], gen_dict["max_p"])/gen_dict["max_p"],
+    )
+
+    # Build, hourly cashflows, overall cashflows, and the objective function
+    scenario_model.add_hourly_cashflows(
+        revenue_streams=["elec_revenue"],
+        operational_costs=None,
+    )
+    scenario_model.add_overall_cashflows(corporate_tax_rate=0)
+    scenario_model.add_objective_function(objective_type="net_profit")
+
+    return scenario_model
+
+
+def fossil_profit_opt_stochastic(forecaster, gen_dict):
+    """Builds and returns a stochastic price-taker model"""
+
+    m = RHPTModel(forecaster=forecaster)
+
+    # forecast the price signal at t = 0
+    lmp_data = forecaster.forecast_prices(pointer=0)
+
+    # build the stochastic price-taker model
+    m.build_stochastic_PT_model(
+        initial_state={},
+        LMP_data=lmp_data,
+        design_func=build_gen_design_model,
+        gen_dict=gen_dict,
+        flowsheet_func=build_fossil_gen_flowsheet,
+        flowsheet_options={"gen_dict": gen_dict},
+        var_names=["power_to_grid"],
+    )
+    
+    # Add objective function
+    m.set_objective_function()
+
+    return m
+
+# read the generator parameters
+gen_dict_path = os.path.join(os.getcwd(), "..", "Data", "gen_dict.json")
+with open(gen_dict_path, "rb") as f:
+    all_gen_dict = json.load(f)
+fossil_gens = copy.deepcopy(all_gen_dict["fossil"])
+gen_name = "101_STEAM_3"
+gen_dict = fossil_gens[gen_name]
+
+# read the LMP data
+lmp_path = os.path.join("..", "Data", "all_bus_lmp.csv")
+df_lmp = pd.read_csv(lmp_path)
+lmp_data = df_lmp[gen_dict["bus_name"]+"_LMP"].to_numpy()
+
+# define the forecaster
+forecaster = RHPTForecaster(price_signal=lmp_data,
+                            scenario=5,
+                            horizon=36,
+                            planning_horizon=24)
+
+# build the fossil generator profit optimization model
+# scenario_model = fossil_profit_opt(forecaster, gen_dict)
+# scenario_model.pprint()
+
+# build stochastic price-taker model
+stochastic_model = fossil_profit_opt_stochastic(forecaster, gen_dict)
+stochastic_model.pprint()
