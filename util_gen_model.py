@@ -40,7 +40,7 @@ def build_gen_design_model(m, gen_dict):
     return
 
 
-def build_fossil_gen_operation_model(m, design_blk, gen_dict):
+def build_fossil_gen_operation_model(m, gen_dict):
     """
     Function that adds the fossil generator operation model
 
@@ -56,7 +56,7 @@ def build_fossil_gen_operation_model(m, design_blk, gen_dict):
     m.power = pyo.Var(
         within=pyo.NonNegativeReals,
         doc="Net power produced by NGCC at time t [in MW]",
-        bounds=(0, design_blk.gen_capacity.value),
+        bounds=(0, gen_dict['max_p']),
         # doc="Output of the power at time t"
     )
     # placeholder: theorically, we can calculate the CO2 emission.
