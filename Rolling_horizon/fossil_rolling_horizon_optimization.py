@@ -141,7 +141,7 @@ forecaster = RHPTForecaster(price_signal=lmp_data,
 # build stochastic price-taker model
 initial_state = {
     "name": gen_dict["name"],
-    "up_time": 30,
+    "up_time": 8,
     "down_time": 0,
     "min_up_time": gen_dict["min_up_time"],
     "min_down_time": gen_dict["min_down_time"],
@@ -155,3 +155,11 @@ stochastic_model = fossil_profit_opt_stochastic(scenario=scenario,
                                                 initial_state=initial_state)
 # stochastic_model.pprint()
 # print(stochastic_model._get_operation_vars(1, "power_to_grid"))
+solver = "gurobi"
+opt_solver = pyo.SolverFactory(solver)
+soln = opt_solver.solve(stochastic_model, tee=True, options={"MIPGap": 0.01})
+
+_logger.info("Solver status:", soln.solver.status)
+_logger.info("Termination condition:", soln.solver.termination_condition)
+_logger.info("Objective value:", pyo.value(stochastic_model.obj))
+
