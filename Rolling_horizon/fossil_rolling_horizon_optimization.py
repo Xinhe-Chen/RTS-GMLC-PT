@@ -163,3 +163,10 @@ _logger.info(f"Solver status: {soln.solver.status}")
 _logger.info(f"Termination condition: {soln.solver.termination_condition}")
 _logger.info(f"Objective value: {pyo.value(stochastic_model.obj)}")
 
+operation_var_name = ["op_mode"]
+
+actual_price = forecaster.fetch_original_signal(pointer=0)
+
+res_dict = stochastic_model.get_results(soln, actual_price=actual_price, power_var_name=None, operation_var_name=operation_var_name)
+with open(f"results/test_gen_{gen_dict['name']}_result.json", "w") as f:
+    json.dump(res_dict, f)
