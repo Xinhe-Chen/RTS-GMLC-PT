@@ -2,15 +2,14 @@ import sys
 import os
 import json
 import copy
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pyomo.environ as pyo
 import pandas as pd
 import idaes.logger as idaeslog
 from idaes.apps.grid_integration import DesignModel, OperationModel
 from idaes.apps.grid_integration import StochasticPriceTaker
 from idaes.apps.grid_integration import RHPTForecaster
-from util_gen_model import build_gen_design_model, build_fossil_gen_operation_model
-from general_gen_model import PriceTakerRTSGMLC
+from util_gen_model_rolling_horizon import build_gen_design_model, build_fossil_gen_operation_model
 
 _logger = idaeslog.getLogger(__name__)
 
@@ -25,15 +24,11 @@ def build_fossil_gen_flowsheet(m, gen_dict):
                 model_args={"gen_dict": gen_dict},
         )
     )
-
     m.power_to_grid = pyo.Var(within=pyo.NonNegativeReals)
     m.calculate_power_to_grid = pyo.Constraint(
         expr=m.power_to_grid == getattr(m, gen_dict["name"]).power
     )
     m.elec_revenue = pyo.Expression(expr=getattr(m, gen_dict["name"]).LMP * m.power_to_grid)
-    m.startup_cost = pyo.Expression(expr=gen_dict["fuel_p"]*gen_dict["start_heat_cold"]*m.startup)
-    m.shutdown_cost = pyo.Expression(expr=gen_dict["fuel_p"]*0.0*m.shutdown)
-    m.vom = pyo.Expression(expr=gen_dict["cost_curve"]["slope"] * m.power_to_grid + gen_dict["cost_curve"]["intercept"])
 
 
 def fossil_profit_opt_scenario(forecaster, gen_dict):
