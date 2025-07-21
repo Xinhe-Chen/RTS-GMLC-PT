@@ -91,7 +91,7 @@ def fossil_profit_opt_scenario(forecaster, gen_dict):
 def fossil_profit_opt_stochastic(scenario, horizon, planning_horizon, forecaster, gen_dict, initial_state={}):
     """Builds and returns a stochastic price-taker model"""
 
-    m = StochasticPriceTaker(scenario, horizon, planning_horizon)
+    m = StochasticPriceTaker(scenario, horizon, planning_horizon, gen_dict=gen_dict)
 
     # forecast the price signal at t = 0
     lmp_data = forecaster.forecast_prices(pointer=0)
