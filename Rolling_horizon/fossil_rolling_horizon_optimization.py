@@ -101,7 +101,6 @@ def fossil_profit_opt_stochastic(scenario, horizon, planning_horizon, forecaster
         initial_state=initial_state,
         LMP_data=lmp_data,
         design_func=build_gen_design_model,
-        gen_dict=gen_dict,
         flowsheet_func=build_fossil_gen_flowsheet,
         flowsheet_options={"gen_dict": gen_dict},
         nonanti_varnames=["power_to_grid"],
