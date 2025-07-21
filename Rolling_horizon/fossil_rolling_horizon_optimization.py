@@ -31,6 +31,9 @@ def build_fossil_gen_flowsheet(m, gen_dict):
         expr=m.power_to_grid == getattr(m, gen_dict["name"]).power
     )
     m.elec_revenue = pyo.Expression(expr=getattr(m, gen_dict["name"]).LMP * m.power_to_grid)
+    m.startup_cost = pyo.Expression(expr=gen_dict["fuel_p"]*gen_dict["start_heat_cold"]*m.startup)
+    m.shutdown_cost = pyo.Expression(expr=gen_dict["fuel_p"]*0.0*m.shutdown)
+    m.vom = pyo.Expression(expr=gen_dict["cost_curve"]["slope"] * m.power_to_grid + gen_dict["cost_curve"]["intercept"])
 
 
 def fossil_profit_opt_scenario(forecaster, gen_dict):
@@ -104,8 +107,9 @@ def fossil_profit_opt_stochastic(scenario, horizon, planning_horizon, forecaster
         flowsheet_func=build_fossil_gen_flowsheet,
         flowsheet_options={"gen_dict": gen_dict},
         nonanti_varnames=["power_to_grid"],
+        operational_costs=["vom", "startup_cost", "shutdown_cost"],
     )
-    
+
     # Add objective function
     m.set_objective_function()
 
@@ -140,8 +144,8 @@ forecaster = RHPTForecaster(price_signal=lmp_data,
 # build stochastic price-taker model
 initial_state = {
     "name": gen_dict["name"],
-    "up_time": 8,
-    "down_time": 0,
+    "up_time": 0,
+    "down_time": 10,
     "min_up_time": gen_dict["min_up_time"],
     "min_down_time": gen_dict["min_down_time"],
 }
