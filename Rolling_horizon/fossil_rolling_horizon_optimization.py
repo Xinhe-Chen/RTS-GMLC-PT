@@ -161,7 +161,7 @@ _logger.info(f"Solver status: {soln.solver.status}")
 _logger.info(f"Termination condition: {soln.solver.termination_condition}")
 _logger.info(f"Objective value: {pyo.value(stochastic_model.obj)}")
 
-operation_var_name = ["op_mode"]
+operation_var_name = ["op_mode", "power"]
 
 actual_price = forecaster.fetch_original_signal(pointer=0)
 
