@@ -159,7 +159,7 @@ solver = "gurobi"
 opt_solver = pyo.SolverFactory(solver)
 soln = opt_solver.solve(stochastic_model, tee=True, options={"MIPGap": 0.01})
 
-_logger.info("Solver status:", soln.solver.status)
-_logger.info("Termination condition:", soln.solver.termination_condition)
-_logger.info("Objective value:", pyo.value(stochastic_model.obj))
+_logger.info(f"Solver status: {soln.solver.status}")
+_logger.info(f"Termination condition: {soln.solver.termination_condition}")
+_logger.info(f"Objective value: {pyo.value(stochastic_model.obj)}")
 
