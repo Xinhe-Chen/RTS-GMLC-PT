@@ -10,7 +10,7 @@ __pycache__/
 *.env
 
 # Ignore csv files
-*.csv
+# *.csv
 .ipynb_checkpoints/
 
 # Ignore OS or IDE junk
