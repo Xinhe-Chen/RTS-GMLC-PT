@@ -9,26 +9,30 @@ import idaes.logger as idaeslog
 from idaes.apps.grid_integration import DesignModel, OperationModel
 from idaes.apps.grid_integration import StochasticPriceTaker
 from idaes.apps.grid_integration import RHPTForecaster
-from util_gen_model_rolling_horizon import build_gen_design_model, build_fossil_gen_operation_model
+from util_gen_model_rolling_horizon import build_fossil_gen_design_model, build_fossil_gen_operation_model
 
 _logger = idaeslog.getLogger(__name__)
 
-
-def build_fossil_gen_flowsheet(m, gen_dict):
+def build_fossil_gen_flowsheet(m, params):
     """Builds the fossil generator flowsheet"""
+    # build the design block
 
-    setattr(m, 
-            gen_dict["name"],
-            OperationModel(
-                model_func=build_fossil_gen_operation_model,
-                model_args={"gen_dict": gen_dict},
+    # build the operational block
+    for key in params:
+        setattr(m, 
+                params[key]["name"],
+                OperationModel(
+                    model_func=build_fossil_gen_operation_model,
+                    model_args={"params": params[key]},
+            )
         )
-    )
     m.power_to_grid = pyo.Var(within=pyo.NonNegativeReals)
     m.calculate_power_to_grid = pyo.Constraint(
-        expr=m.power_to_grid == getattr(m, gen_dict["name"]).power
+        expr=m.power_to_grid == sum(getattr(m, params[key]["name"]).power for key in params.keys())
     )
-    m.elec_revenue = pyo.Expression(expr=getattr(m, gen_dict["name"]).LMP * m.power_to_grid)
+    
+    # here, assume all generators share the same LMP.
+    m.elec_revenue = pyo.Expression(expr=getattr(m, params[key]["name"]).LMP * m.power_to_grid)
 
 
 def fossil_profit_opt_scenario(forecaster, gen_dict):
@@ -43,10 +47,10 @@ def fossil_profit_opt_scenario(forecaster, gen_dict):
     # just do one scenario for now
     scenario_model = m.build_PT_model(
         LMP_data=scenario_lmp_data,
-        design_func=build_gen_design_model,
-        gen_dict=gen_dict,
+        design_func=build_fossil_gen_design_model,
+        design_params=gen_dict,
         flowsheet_func=build_fossil_gen_flowsheet,
-        flowsheet_options={"gen_dict": gen_dict},
+        flowsheet_options={"params": gen_dict},
     )
 
     # Add operation limits
@@ -94,16 +98,23 @@ def fossil_profit_opt_stochastic(scenario, horizon, planning_horizon, forecaster
     # forecast the price signal at t = 0
     lmp_data = forecaster.forecast_prices(pointer=0)
 
+    design_func_dict = {}
+    for key in list(gen_dict.keys()):
+        design_func_dict[key] = build_fossil_gen_design_model
+
+    # build scenario models
+    scenario_model_list = m.generate_scenario_model_list(initial_state=initial_state,
+                                                         LMP_data=lmp_data,
+                                                         design_func_dict=design_func_dict,
+                                                         design_params=gen_dict,
+                                                         flowsheet_func=build_fossil_gen_flowsheet,
+                                                         flowsheet_options={"params": gen_dict},
+                                                         commodity="power",
+                                                         operational_costs=["vom", "startup_cost", "shutdown_cost"],
+                                                         )
+    
     # build the stochastic price-taker model
-    m.build_stochastic_PT_model(
-        initial_state=initial_state,
-        LMP_data=lmp_data,
-        design_func=build_gen_design_model,
-        flowsheet_func=build_fossil_gen_flowsheet,
-        flowsheet_options={"gen_dict": gen_dict},
-        nonanti_varnames=["power_to_grid"],
-        operational_costs=["vom", "startup_cost", "shutdown_cost"],
-    )
+    m.build_stochastic_PT_model(scenario_model_list=scenario_model_list, nonanti_varnames=["power_to_grid"])
 
     # Add objective function
     m.set_objective_function()
@@ -115,14 +126,23 @@ gen_dict_path = os.path.join(os.getcwd(), "..", "Data", "gen_dict.json")
 with open(gen_dict_path, "rb") as f:
     all_gen_dict = json.load(f)
 fossil_gens = copy.deepcopy(all_gen_dict["fossil"])
-gen_name = "101_STEAM_3"
-gen_dict = fossil_gens[gen_name]
-gen_dict["name"] = "gen_" + gen_dict["name"]
+
+"""
+This is for test single/multiple generators (or units).
+"""
+gen_dict = {}
+# gen_names = ["101_STEAM_3"]
+gen_names = ["101_STEAM_3", "101_CT_1"]
+for gen_name in gen_names:
+    individual_gen_dict = fossil_gens[gen_name]
+    individual_gen_dict["name"] = "gen_" + individual_gen_dict["name"]
+    gen_dict[individual_gen_dict["name"]] = individual_gen_dict
+
 
 # read the LMP data
 lmp_path = os.path.join("..", "Data", "all_bus_lmp.csv")
 df_lmp = pd.read_csv(lmp_path)
-lmp_data = df_lmp[gen_dict["bus_name"]+"_LMP"].to_numpy()
+lmp_data = df_lmp[gen_dict["gen_101_STEAM_3"]["bus_name"]+"_LMP"].to_numpy()
 
 # define the scenario, horizon, and planning horizon
 scenario, horizon, planning_horizon = 5, 36, 24
@@ -132,40 +152,65 @@ forecaster = RHPTForecaster(price_signal=lmp_data,
                             horizon=horizon,
                             planning_horizon=planning_horizon)
 
-# build the fossil generator profit optimization model
+# build the scenario model
 # scenario_model = fossil_profit_opt(forecaster, gen_dict)
 # scenario_model.pprint()
 
-# build stochastic price-taker model
-initial_state = {
-    "name": gen_dict["name"],
+"""
+build a stochastic price-taker model.
+"""
+# make a pseduo initial state
+initial_state_1 = {
+    "name": list(gen_dict.keys())[0],
     "up_time": 0,
     "down_time": 10,
-    "min_up_time": gen_dict["min_up_time"],
-    "min_down_time": gen_dict["min_down_time"],
+    "min_up_time": gen_dict[list(gen_dict.keys())[0]]["min_up_time"],
+    "min_down_time": gen_dict[list(gen_dict.keys())[0]]["min_down_time"],
 }
+initial_state_2 = {
+    "name": list(gen_dict.keys())[1],
+    "up_time": 0,
+    "down_time": 10,
+    "min_up_time": gen_dict[list(gen_dict.keys())[0]]["min_up_time"],
+    "min_down_time": gen_dict[list(gen_dict.keys())[0]]["min_down_time"],
+}
+initial_state_list = [initial_state_1, initial_state_2]
+initial_state = {}
+for idx, key in zip(range(len(gen_dict)), gen_dict.keys()):
+    initial_state[key] = initial_state_list[idx]
 
+# build the model
 stochastic_model = fossil_profit_opt_stochastic(scenario=scenario,
                                                 horizon=horizon,
                                                 planning_horizon=planning_horizon,
                                                 forecaster=forecaster,
                                                 gen_dict=gen_dict,
                                                 initial_state=initial_state)
-# stochastic_model.pprint()
+
+# check if the model is built successfully
+stochastic_model.pprint()
 # print(stochastic_model._get_operation_vars(1, "power_to_grid"))
-solver = "gurobi"
-opt_solver = pyo.SolverFactory(solver)
-soln = opt_solver.solve(stochastic_model, tee=True, options={"MIPGap": 0.01})
 
-_logger.info(f"Solver status: {soln.solver.status}")
-_logger.info(f"Termination condition: {soln.solver.termination_condition}")
-_logger.info(f"Objective value: {pyo.value(stochastic_model.obj)}")
+# """
+# Solve model and record results.
+# """
+# solver = "gurobi"
+# opt_solver = pyo.SolverFactory(solver)
+# soln = opt_solver.solve(stochastic_model, tee=True, options={"MIPGap": 0.01})
 
-operation_var_name = ["op_mode", "power"]
+# _logger.info(f"Solver status: {soln.solver.status}")
+# _logger.info(f"Termination condition: {soln.solver.termination_condition}")
+# _logger.info(f"Objective value: {pyo.value(stochastic_model.obj)}")
 
-actual_price = forecaster.fetch_original_signal(pointer=0)
+# operation_var_name = ["op_mode", "power"]
 
-res_dict = stochastic_model.record_solution(soln, actual_price=actual_price, operation_var_name=operation_var_name)
-with open(f"results/test_gen_{gen_dict['name']}_result.json", "w") as f:
-    json.dump(res_dict, f)
-print(res_dict)
+# actual_price = forecaster.fetch_original_signal(pointer=0)
+
+# res_dict = stochastic_model.record_solution(soln, actual_price=actual_price, operation_var_name=operation_var_name)
+
+# """
+# Save results. (Consider build a csv file.)
+# """
+# with open(f"results/test_gen_{gen_dict['name']}_result.json", "w") as f:
+#     json.dump(res_dict, f)
+# print(res_dict)
