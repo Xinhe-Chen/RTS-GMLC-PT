@@ -211,6 +211,6 @@ res_dict = stochastic_model.record_solution(soln, actual_price=actual_price, ope
 """
 Save results. (Consider build a csv file.)
 """
-with open(f"results/test_gen_{gen_dict['name']}_result.json", "w") as f:
-    json.dump(res_dict, f)
+# with open(f"results/test_gen_{gen_dict['name']}_result.json", "w") as f:
+#     json.dump(res_dict, f)
 print(res_dict)
