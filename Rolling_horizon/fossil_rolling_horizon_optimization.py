@@ -167,14 +167,14 @@ initial_state_1 = {
     "min_up_time": gen_dict[list(gen_dict.keys())[0]]["min_up_time"],
     "min_down_time": gen_dict[list(gen_dict.keys())[0]]["min_down_time"],
 }
-initial_state_2 = {
-    "name": list(gen_dict.keys())[1],
-    "up_time": 0,
-    "down_time": 10,
-    "min_up_time": gen_dict[list(gen_dict.keys())[0]]["min_up_time"],
-    "min_down_time": gen_dict[list(gen_dict.keys())[0]]["min_down_time"],
-}
-initial_state_list = [initial_state_1, initial_state_2]
+# initial_state_2 = {
+#     "name": list(gen_dict.keys())[1],
+#     "up_time": 0,
+#     "down_time": 10,
+#     "min_up_time": gen_dict[list(gen_dict.keys())[0]]["min_up_time"],
+#     "min_down_time": gen_dict[list(gen_dict.keys())[0]]["min_down_time"],
+# }
+initial_state_list = [initial_state_1]
 initial_state = {}
 for idx, key in zip(range(len(gen_dict)), gen_dict.keys()):
     initial_state[key] = initial_state_list[idx]
