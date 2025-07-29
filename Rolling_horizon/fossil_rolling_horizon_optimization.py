@@ -131,8 +131,8 @@ fossil_gens = copy.deepcopy(all_gen_dict["fossil"])
 This is for test single/multiple generators (or units).
 """
 gen_dict = {}
-# gen_names = ["101_STEAM_3"]
-gen_names = ["101_STEAM_3", "101_CT_1"]
+gen_names = ["101_STEAM_3"]
+# gen_names = ["101_STEAM_3", "101_CT_1"]
 for gen_name in gen_names:
     individual_gen_dict = fossil_gens[gen_name]
     individual_gen_dict["name"] = "gen_" + individual_gen_dict["name"]
@@ -188,29 +188,29 @@ stochastic_model = fossil_profit_opt_stochastic(scenario=scenario,
                                                 initial_state=initial_state)
 
 # check if the model is built successfully
-stochastic_model.pprint()
+# stochastic_model.pprint()
 # print(stochastic_model._get_operation_vars(1, "power_to_grid"))
 
-# """
-# Solve model and record results.
-# """
-# solver = "gurobi"
-# opt_solver = pyo.SolverFactory(solver)
-# soln = opt_solver.solve(stochastic_model, tee=True, options={"MIPGap": 0.01})
+"""
+Solve model and record results.
+"""
+solver = "gurobi"
+opt_solver = pyo.SolverFactory(solver)
+soln = opt_solver.solve(stochastic_model, tee=True, options={"MIPGap": 0.01})
 
-# _logger.info(f"Solver status: {soln.solver.status}")
-# _logger.info(f"Termination condition: {soln.solver.termination_condition}")
-# _logger.info(f"Objective value: {pyo.value(stochastic_model.obj)}")
+_logger.info(f"Solver status: {soln.solver.status}")
+_logger.info(f"Termination condition: {soln.solver.termination_condition}")
+_logger.info(f"Objective value: {pyo.value(stochastic_model.obj)}")
 
-# operation_var_name = ["op_mode", "power"]
+operation_var_name = ["op_mode", "power"]
 
-# actual_price = forecaster.fetch_original_signal(pointer=0)
+actual_price = forecaster.fetch_original_signal(pointer=0)
 
-# res_dict = stochastic_model.record_solution(soln, actual_price=actual_price, operation_var_name=operation_var_name)
+res_dict = stochastic_model.record_solution(soln, actual_price=actual_price, operation_var_name=operation_var_name)
 
-# """
-# Save results. (Consider build a csv file.)
-# """
-# with open(f"results/test_gen_{gen_dict['name']}_result.json", "w") as f:
-#     json.dump(res_dict, f)
-# print(res_dict)
+"""
+Save results. (Consider build a csv file.)
+"""
+with open(f"results/test_gen_{gen_dict['name']}_result.json", "w") as f:
+    json.dump(res_dict, f)
+print(res_dict)
