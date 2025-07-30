@@ -112,6 +112,8 @@ def fossil_profit_opt_stochastic(scenario, horizon, planning_horizon, forecaster
                                                          commodity="power",
                                                          operational_costs=["vom", "startup_cost", "shutdown_cost"],
                                                          )
+    # check the lmp_data
+    m.lmp_check(lmp_data)
     
     # build the stochastic price-taker model
     m.build_stochastic_PT_model(scenario_model_list=scenario_model_list, nonanti_varnames=["power_to_grid"])
