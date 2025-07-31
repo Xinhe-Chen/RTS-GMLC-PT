@@ -168,3 +168,36 @@ def gen_startup_cost(gen_dict):
     start_up_cost = {'hot': start_up_cost_hot, 'warm': start_up_cost_warm, 'cold': start_up_cost_cold}
     
     return start_up_cost
+
+
+def read_rolling_horizon_params(json_path=None):
+    '''
+    Read the rolling horizon parameters from the json file
+    '''
+    with open(json_path, 'rb') as f:
+        rolling_horizon_result = json.load(f)
+
+    return rolling_horizon_result
+
+def check_optimal_status(res_dict):
+    """
+    Check the optimal status of the rolling horizon results
+    """
+    non_optimal = []
+    for key in res_dict.keys():
+        if res_dict[key]['TerminationCondition'] != 'optimal':
+            non_optimal.append(key)
+    if non_optimal:
+        _logger.warning(f"Totally {len(non_optimal)} periods are not optimal.")
+
+    return non_optimal
+
+def calculate_total_profit(res_dict, name="ActualProfit"):
+    """
+    Calculate the total actual profit from the rolling horizon results
+    """
+    total_profit = 0
+    for key in res_dict.keys():
+        total_profit += res_dict[key][name]
+    
+    return total_profit

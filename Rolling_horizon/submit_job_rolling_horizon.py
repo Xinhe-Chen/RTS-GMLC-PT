@@ -22,7 +22,7 @@ def submit_job(
             + "#$ -M xchen24@nd.edu\n"
             + "#$ -m ae\n"
             + "#$ -q long\n"
-            + f"#$ -N Rolling_horizon_Pricetaker_{gen_name}_{period}\n"
+            + f"#$ -N Rolling_horizon_Pricetaker_{gen_name}_p_{period}_s_{scenario}_h_{horizon}\n"
             + "conda activate idaes\n"
             # + "export LD_LIBRARY_PATH=~/.conda/envs/regen/lib:$LD_LIBRARY_PATH \n"
             + "module load gurobi\n"

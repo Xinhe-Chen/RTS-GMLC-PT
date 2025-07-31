@@ -86,13 +86,10 @@ def fossil_profit_opt_scenario(forecaster, gen_dict):
     return scenario_model
 
 
-def fossil_profit_opt_stochastic(scenario, horizon, planning_horizon, forecaster, gen_dict, initial_state={}):
+def fossil_profit_opt_stochastic(scenario, horizon, planning_horizon, lmp_data, gen_dict, initial_state={}):
     """Builds and returns a stochastic price-taker model"""
 
     m = StochasticPriceTaker(scenario, horizon, planning_horizon, gen_dict=gen_dict)
-
-    # forecast the price signal at t = 0
-    lmp_data = forecaster.forecast_prices(pointer=0)
 
     design_func_dict = {}
     for key in list(gen_dict.keys()):
@@ -180,10 +177,14 @@ operation_var_name = ["op_mode", "power"]
 initial_state = original_initial_state
 for i in range(0, period):
     _logger.info(f"Building price-taker optimization for period {i}.")
+    # forecast the price signal at t = 0
+    lmp_data = forecaster.forecast_prices(pointer=i)
+    # build the stochastic model
     stochastic_model = fossil_profit_opt_stochastic(scenario=scenario,
                                                 horizon=horizon,
                                                 planning_horizon=planning_horizon,
-                                                forecaster=forecaster,
+                                                lmp_data=lmp_data,
+                                                gen_dict=gen_dict,
                                                 gen_dict=gen_dict,
                                                 initial_state=initial_state)
     soln = opt_solver.solve(stochastic_model, tee=True, options={"MIPGap": 0.01})
