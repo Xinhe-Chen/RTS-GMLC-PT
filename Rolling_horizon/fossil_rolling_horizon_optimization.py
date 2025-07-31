@@ -5,7 +5,7 @@ import pandas as pd
 import idaes.logger as idaeslog
 from idaes.apps.grid_integration import OperationModel, StochasticPriceTaker, RHPTForecaster
 from util_gen_model_rolling_horizon import build_fossil_gen_design_model, build_fossil_gen_operation_model
-from fossil_rolling_horizon_optimization import gen_dict, period, scenario, horizon, planning_horizon, original_initial_state
+from fossil_rolling_horizon_PT_parameter import gen_dict, period, scenario, horizon, planning_horizon, original_initial_state
 
 _logger = idaeslog.getLogger(__name__)
 
