@@ -243,5 +243,5 @@ for i in range(0, period):
     results_dict[f"period_{i}"] = res_dict
 
 with open(f"results/test_{period}_gen_101_STEAM_3_result.json", "w") as f:
-    json.dump(res_dict, f)
-print(res_dict)
+    json.dump(results_dict, f)
+print(results_dict)
