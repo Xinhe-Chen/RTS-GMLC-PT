@@ -49,5 +49,5 @@ original_initial_state = {}
 for idx, key in zip(range(len(gen_dict)), gen_dict.keys()):
     original_initial_state[key] = initial_state_list[idx]
 
-period = 14
+period = 366
 scenario, horizon, planning_horizon = 5, 36, 24
