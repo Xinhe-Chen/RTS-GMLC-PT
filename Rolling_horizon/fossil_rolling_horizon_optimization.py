@@ -1,15 +1,11 @@
-import sys
 import os
 import json
-import copy
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pyomo.environ as pyo
 import pandas as pd
 import idaes.logger as idaeslog
-from idaes.apps.grid_integration import DesignModel, OperationModel
-from idaes.apps.grid_integration import StochasticPriceTaker
-from idaes.apps.grid_integration import RHPTForecaster
+from idaes.apps.grid_integration import OperationModel, StochasticPriceTaker, RHPTForecaster
 from util_gen_model_rolling_horizon import build_fossil_gen_design_model, build_fossil_gen_operation_model
+from fossil_rolling_horizon_optimization import gen_dict, period, scenario, horizon, planning_horizon, original_initial_state
 
 _logger = idaeslog.getLogger(__name__)
 
@@ -123,23 +119,6 @@ def fossil_profit_opt_stochastic(scenario, horizon, planning_horizon, forecaster
 
     return m
 
-# read the generator parameters
-gen_dict_path = os.path.join(os.getcwd(), "..", "Data", "gen_dict.json")
-with open(gen_dict_path, "rb") as f:
-    all_gen_dict = json.load(f)
-fossil_gens = copy.deepcopy(all_gen_dict["fossil"])
-
-"""
-This is for test single/multiple generators (or units).
-"""
-gen_dict = {}
-gen_names = ["101_STEAM_3"]
-# gen_names = ["101_STEAM_3", "101_CT_1"]
-for gen_name in gen_names:
-    individual_gen_dict = fossil_gens[gen_name]
-    individual_gen_dict["name"] = "gen_" + individual_gen_dict["name"]
-    gen_dict[individual_gen_dict["name"]] = individual_gen_dict
-
 
 # read the LMP data
 lmp_path = os.path.join("..", "Data", "all_bus_lmp.csv")
@@ -147,40 +126,17 @@ df_lmp = pd.read_csv(lmp_path)
 lmp_data = df_lmp[gen_dict["gen_101_STEAM_3"]["bus_name"]+"_LMP"].to_numpy()
 
 # define the scenario, horizon, and planning horizon
-scenario, horizon, planning_horizon = 5, 36, 24
+
 # define the forecaster
 forecaster = RHPTForecaster(price_signal=lmp_data,
                             scenario=scenario,
                             horizon=horizon,
                             planning_horizon=planning_horizon)
 
-# build the scenario model
-# scenario_model = fossil_profit_opt(forecaster, gen_dict)
-# scenario_model.pprint()
 
 """
-build a stochastic price-taker model.
+Build and solve single stochastic PT model and record results.
 """
-# make a pseduo initial state
-initial_state_1 = {
-    "name": list(gen_dict.keys())[0],
-    "up_time": 0,
-    "down_time": 10,
-    "min_up_time": gen_dict[list(gen_dict.keys())[0]]["min_up_time"],
-    "min_down_time": gen_dict[list(gen_dict.keys())[0]]["min_down_time"],
-}
-# initial_state_2 = {
-#     "name": list(gen_dict.keys())[1],
-#     "up_time": 0,
-#     "down_time": 10,
-#     "min_up_time": gen_dict[list(gen_dict.keys())[0]]["min_up_time"],
-#     "min_down_time": gen_dict[list(gen_dict.keys())[0]]["min_down_time"],
-# }
-initial_state_list = [initial_state_1]
-initial_state = {}
-for idx, key in zip(range(len(gen_dict)), gen_dict.keys()):
-    initial_state[key] = initial_state_list[idx]
-
 # build the model
 # stochastic_model = fossil_profit_opt_stochastic(scenario=scenario,
 #                                                 horizon=horizon,
@@ -193,11 +149,9 @@ for idx, key in zip(range(len(gen_dict)), gen_dict.keys()):
 # stochastic_model.pprint()
 # print(stochastic_model._get_operation_vars(1, "power_to_grid"))
 
-"""
-Solve model and record results.
-"""
-solver = "gurobi"
-opt_solver = pyo.SolverFactory(solver)
+# # solve the model
+# solver = "gurobi"
+# opt_solver = pyo.SolverFactory(solver)
 # soln = opt_solver.solve(stochastic_model, tee=True, options={"MIPGap": 0.01})
 
 # _logger.info(f"Solver status: {soln.solver.status}")
@@ -210,19 +164,20 @@ opt_solver = pyo.SolverFactory(solver)
 
 # res_dict = stochastic_model.record_solution(soln, actual_price=actual_price, operation_var_name=operation_var_name)
 
-"""
-Save results. (Consider build a csv file.)
-"""
+# # save the results
 # with open(f"results/test_gen_{gen_dict['name']}_result.json", "w") as f:
 #     json.dump(res_dict, f)
 # print(res_dict)
 
+
 """
-Do rolling horizon optimization.
+Build and solve a rolling horizon stochastic PT model and record results.
 """
+solver = "gurobi"
+opt_solver = pyo.SolverFactory(solver)
 results_dict = {}
 operation_var_name = ["op_mode", "power"]
-period = 14
+initial_state = original_initial_state
 for i in range(0, period):
     _logger.info(f"Building price-taker optimization for period {i}.")
     stochastic_model = fossil_profit_opt_stochastic(scenario=scenario,
@@ -240,6 +195,8 @@ for i in range(0, period):
     actual_price = forecaster.fetch_original_signal(pointer=i)
     res_dict = stochastic_model.record_solution(soln, actual_price=actual_price, operation_var_name=operation_var_name)
 
+    # update initial_state
+    initial_state = stochastic_model.report_final_states()
     results_dict[f"period_{i}"] = res_dict
 
 with open(f"results/test_{period}_gen_101_STEAM_3_result.json", "w") as f:
