@@ -36,4 +36,4 @@ def submit_job(
 if __name__ == "__main__":
 
     gen_name = "101_STEAM_3"
-    submit_job(gen_name, period)
+    submit_job(gen_name, period, scenario, horizon)
