@@ -7,7 +7,7 @@ import pyomo.environ as pyo
 import pandas as pd
 import idaes.logger as idaeslog
 from idaes.apps.grid_integration import DesignModel, OperationModel
-from idaes.apps.grid_integration import StochasticPriceTaker, RollinghorizonPriceTaker
+from idaes.apps.grid_integration import StochasticPriceTaker
 from idaes.apps.grid_integration import RHPTForecaster
 from util_gen_model_rolling_horizon import build_fossil_gen_design_model, build_fossil_gen_operation_model
 
