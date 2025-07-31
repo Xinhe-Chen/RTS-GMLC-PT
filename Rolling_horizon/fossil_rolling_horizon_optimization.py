@@ -185,7 +185,6 @@ for i in range(0, period):
                                                 planning_horizon=planning_horizon,
                                                 lmp_data=lmp_data,
                                                 gen_dict=gen_dict,
-                                                gen_dict=gen_dict,
                                                 initial_state=initial_state)
     soln = opt_solver.solve(stochastic_model, tee=True, options={"MIPGap": 0.01})
     
