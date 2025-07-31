@@ -196,7 +196,7 @@ for i in range(0, period):
     res_dict = stochastic_model.record_solution(soln, actual_price=actual_price, operation_var_name=operation_var_name)
 
     # update initial_state
-    initial_state = stochastic_model.report_final_states()
+    initial_state = stochastic_model.report_final_state()
     results_dict[f"period_{i}"] = res_dict
 
 with open(f"results/test_{period}_gen_101_STEAM_3_result.json", "w") as f:
