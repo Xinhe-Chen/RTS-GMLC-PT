@@ -202,3 +202,13 @@ for i in range(0, period):
 with open(f"results/test_{period}_gen_101_STEAM_3_result.json", "w") as f:
     json.dump(results_dict, f)
 print(results_dict)
+
+
+"""
+Try the average LMP signal on the uncertain scenario LMPs. 
+"""
+
+"""
+Think about nonantiative constraints with multiple generators allowing 
+different operation variables to generate the same output.
+"""
