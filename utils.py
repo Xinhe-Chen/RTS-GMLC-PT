@@ -201,3 +201,15 @@ def calculate_total_profit(res_dict, name="ActualProfit"):
         total_profit += res_dict[key][name]
     
     return total_profit
+
+def calculate_total_startup_shutdown(res_dict, gen_name):
+    """
+    Calculate the total number of startup and shutdown from the rolling horizon results
+    """
+    total_startup = 0
+    total_shutdown = 0
+    for key in res_dict.keys():
+        total_startup += sum(res_dict[key][gen_name]["OperationVariables_startup"]["1"].values())
+        total_shutdown += sum(res_dict[key][gen_name]["OperationVariables_shutdown"]["1"].values())
+
+    return total_startup, total_shutdown
