@@ -1,6 +1,5 @@
 import os
 import json
-import numpy as np
 import pandas as pd
 import pyomo.environ as pyo
 import idaes.logger as idaeslog
@@ -31,7 +30,7 @@ lmp_data = lmp_data_all[0:24]
 # run the optimization
 m = determinstic_fossil_profit_opt(params, lmp_data)
 
-m.pprint()
+m.gen_101_STEAM_3_startup_shutdown.pprint()
 
 # solver = pyo.SolverFactory("gurobi_persistent")
 # solver.set_instance(m)
