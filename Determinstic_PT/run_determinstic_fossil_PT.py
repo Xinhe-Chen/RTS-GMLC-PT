@@ -51,11 +51,11 @@ def save_results(m):
     result_dict = {}
     result_dict["objective"] = pyo.value(m.obj)
     for p in m.period:
-        result_dict[p] = {}
+        result_dict[p[1]] = {}
         # result_dict[p]["power"] = pyo.value(m.period[p].power_to_grid)
-        result_dict[p]["rev"] = pyo.value(m.period[p].elec_revenue)
-        result_dict[p]["vom"] = pyo.value(m.period[p].gen_101_STEAM_3.vom)
-        result_dict[p]["startup"] = pyo.value(m.period[p].gen_101_STEAM_3.startup)
+        result_dict[p[1]]["rev"] = pyo.value(m.period[p].elec_revenue)
+        result_dict[p[1]]["vom"] = pyo.value(m.period[p].gen_101_STEAM_3.vom)
+        result_dict[p[1]]["startup"] = pyo.value(m.period[p].gen_101_STEAM_3.startup)
     return result_dict
 
 with open("det_fossil_PT_fixed_dispatch_results.json", "w") as f:
