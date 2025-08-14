@@ -44,18 +44,18 @@ solver.set_instance(m)
 solver.options["MIPGap"] = 0.005
 result = solver.solve(tee=True)
 
-def save_results(result):
+def save_results(m):
     """
     Check the results of the optimization.
     """
     result_dict = {}
-    result_dict["objective"] = pyo.value(result.objective)
-    for p in result.period:
+    result_dict["objective"] = pyo.value(m.obj)
+    for p in m.period:
         result_dict[p] = {}
-        result_dict[p]["power"] = pyo.value(result.period[p].power)
-        result_dict[p]["vom"] = pyo.value(result.period[p].vom)
-        result_dict[p]["startup_cost"] = pyo.value(result.period[p].startup_cost)
+        result_dict[p]["power"] = pyo.value(m.period[p].power)
+        result_dict[p]["vom"] = pyo.value(m.period[p].gen_103_STEAM_1.vom)
+        result_dict[p]["startup"] = pyo.value(m.period[p].gen_103_STEAM_1.startup)
     return result_dict
 
 with open("det_fossil_PT_fixed_dispatch_results.json", "w") as f:
-    json.dump(save_results(result), f)
+    json.dump(save_results(m), f)
