@@ -4,11 +4,7 @@ import pandas as pd
 import pyomo.environ as pyo
 import idaes.logger as idaeslog
 from determinstic_fossil_PT_opt import determinstic_fossil_profit_opt
-from pyomo.util.infeasible import (
-    log_infeasible_constraints,
-    log_infeasible_bounds,
-    log_close_to_bounds,
-)
+from pyomo.opt import TerminationCondition
 
 
 _logger = idaeslog.getLogger(__name__)
@@ -48,9 +44,13 @@ solver.set_instance(m)
 solver.options["MIPGap"] = 0.005
 result = solver.solve(tee=True)
 
-log_infeasible_bounds(result, tol=1e-8)
-log_infeasible_constraints(result, tol=1e-8)
-log_close_to_bounds(result, tol=1e-8)   # useful to see tight/active bounds
+if result.solver.termination_condition == TerminationCondition.infeasible:
+    gmodel = solver._solver_model    # the underlying gurobipy.Model
+    gmodel.computeIIS()
+    # Write the IIS to a file that flags the conflicting rows/bounds
+    # gmodel.write("infeasible.ilp")   # IIS file (recommended)
+    gmodel.write("infeasible.ilp.json")  # optional JSON if you prefer
+    print("Wrote IIS to infeasible.ilp")
 
 # def save_results(result):
 #     """
