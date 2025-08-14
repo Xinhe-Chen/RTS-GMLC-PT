@@ -58,29 +58,36 @@ def build_fossil_gen_operation_model(m, params):
         bounds=(0, params['max_p']),
         # doc="Output of the power at time t"
     )
-    # placeholder: theorically, we can calculate the CO2 emission.
 
     # vom is a linear function of the power
     slope = params["cost_curve"]["slope"]
     intercept = params["cost_curve"]["intercept"]
     m.vom = pyo.Expression(expr=slope * m.power + intercept * m.op_mode)
 
-    # for the benchmark, use cold start cost.
-    cold_start_cost = params["start_heat_cold"] * params["fuel_p"]
-    m.startup_cost = pyo.Expression(expr=2898 * m.startup)
+    # for the single type startup, use cold start cost.
+    # cold_start_cost = params["start_heat_cold"] * params["fuel_p"]
+    # m.startup_cost = pyo.Expression(expr=cold_start_cost * m.startup)
     # m.shutdown_cost = pyo.Expression(expr=0 * m.shutdown)
+
+    # for multiple type startup, define the startup costs based on the type
+    types = ["hot", "warm", "cold"]
+    cost_list = {type_: params["fuel_p"]*params["start_heat_" + type_] for type_ in types}
+    m.startup_cost = pyo.Expression(expr=sum(m.startup_type_vars[k]*cost_list[k] for k in m.startup_type_vars))
+    m.shutdown_cost = pyo.Expression(expr=0 * m.shutdown)
 
     return
 
 
 def build_fossil_gen_flowsheet(m, params):
     """Builds the fossil generator flowsheet"""
-
+    types = ["hot", "warm", "cold"]
+    startup_types = {type_: params["start_up_time_" + type_] for type_ in types}
     setattr(m, 
             "gen_" + params["name"],
             OperationModel(
                 model_func=build_fossil_gen_operation_model,
                 model_args={"params": params},
+                startup_types=startup_types
         )
     )
 
@@ -91,7 +98,17 @@ def build_fossil_gen_flowsheet(m, params):
     m.elec_revenue = pyo.Expression(expr=getattr(m, "gen_"+params["name"]).LMP * m.power_to_grid)
 
 
-def determinstic_fossil_profit_opt(params, lmp_data, configuration=None):
+def fix_dispatch(m, data):
+    """Adds constraints to fix the dispatch value"""
+
+    # Add a constraint to each flowsheet instance to fix dispatch
+    for p in m.period:
+        m.period[p].constrain_dispatch = pyo.Constraint(
+            expr=m.period[p].power_to_grid == data[p[1]-1]
+        )
+
+
+def determinstic_fossil_profit_opt(params, lmp_data, dispatch_data, configuration=None, fixing_dispatch=False):
     """Builds and returns an instance of the price-taker model"""
     m = PriceTakerModel()
 
@@ -112,11 +129,6 @@ def determinstic_fossil_profit_opt(params, lmp_data, configuration=None):
         },
     )
 
-    # Define useful expressions
-    # m.total_co2_produced = pyo.Expression(
-    #     expr=sum(m.period[p].ngcc.co2_emissions for p in m.period)
-    # )
-
     # Add operation limits
     m.add_capacity_limits(
         op_block_name="gen_" + params["name"],
@@ -126,10 +138,13 @@ def determinstic_fossil_profit_opt(params, lmp_data, configuration=None):
     )
 
     # Add minimum uptime-downtime constraints on the unit
+    types = ["hot", "warm", "cold"]
+    startup_transition_time = {type_: params["start_up_time_" + type_] for type_ in types}
     m.add_startup_shutdown(
         op_block_name="gen_" + params["name"],
         minimum_up_time=params["min_up_time"],
         minimum_down_time=params["min_down_time"],
+        startup_transition_time=startup_transition_time,
     )
 
     # Add ramping constraints on the unit
@@ -151,5 +166,8 @@ def determinstic_fossil_profit_opt(params, lmp_data, configuration=None):
 
     m.add_overall_cashflows(corporate_tax_rate=0)
     m.add_objective_function(objective_type="net_profit")
+
+    if fixing_dispatch:
+        fix_dispatch(m, dispatch_data)
 
     return m

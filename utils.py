@@ -38,6 +38,70 @@ def _prescient_output_to_df(file_name):
     return df[cols]
 
 
+def get_gdf(directory, generator_file_name, generator_name, dispatch_name):
+    gdf = _prescient_output_to_df(os.path.join(directory, generator_file_name))
+    gdf = gdf[gdf["Generator"] == generator_name][["Datetime", dispatch_name, dispatch_name + " DA"]]
+    gdf.set_index("Datetime", inplace=True)
+    gdf.rename(columns={dispatch_name: "Dispatch", dispatch_name + " DA": "Dispatch DA"}, inplace=True)
+
+    return gdf
+
+
+def summarize_results(base_directory, generator_name, bus_name, output_directory):
+    """
+    Summarize Prescient runs for a single generator
+    Args:
+        base_directory (str) : the base directory name (without index)
+        generator_name (str) : The generator name to get the dispatch for. Looks in thermal_gens.csv and then renewable_gens.csv.
+        bus_name (str) : The bus to get the LMPs for.
+        output_directory (str) : The location to write the summary files to.
+    Returns:
+        None
+    """
+
+    # param_file = os.path.join(output_directory, "sweep_parameters.csv")
+
+    # figure out if renewable or thermal or virtual
+    generator_file_names = ("thermal_detail.csv", "renewables_detail.csv", "virtual_detail.csv")
+    dispatch_name_map = { "thermal_detail.csv" : "Dispatch",
+                          "renewables_detail.csv" : "Output",
+                          "virtual_detail.csv" : "Output",
+                        }
+
+    def _get_gen_df(generator_name):
+        for generator_file_name in generator_file_names:
+            gdf = pd.read_csv(os.path.join(base_directory, generator_file_name))["Generator"]
+            if generator_name in gdf.unique():
+                return generator_file_name
+        else: # no break
+            raise RuntimeError("Could not find output for generator "+generator_name)
+
+    generator_file_name = _get_gen_df(generator_name)
+    dispatch_name = dispatch_name_map[generator_file_name]
+
+
+    # if not os.path.isfile(os.path.join(directory, "overall_simulation_output.csv")):
+    #     raise Exception(f"For index {idx}, the simulation did not complete!")
+
+    gdf = get_gdf(base_directory, generator_file_name, generator_name, dispatch_name)
+    df_list = [gdf]
+    RT_names = [gdf.columns[0]]
+    DA_names = [gdf.columns[1]]
+
+
+    bdf = _prescient_output_to_df(os.path.join(base_directory, "bus_detail.csv"))
+    bdf = bdf[bdf["Bus"] == bus_name][["Datetime","LMP","LMP DA"]]
+    bdf.set_index("Datetime", inplace=True)
+    df_list.append(bdf)
+    RT_names.append(bdf.columns[0])
+    DA_names.append(bdf.columns[1])
+
+    odf = pd.concat(df_list, axis=1)[[*RT_names,*DA_names]]
+    odf.to_csv(os.path.join(output_directory, f"{base_directory}.csv"))
+
+    return
+
+
 def make_lmp_csv(lmp_path, bus_details_path, bus_name):
     bdf = _prescient_output_to_df(bus_details_path)
     bdf = bdf[bdf["Bus"] == bus_name][["Datetime","LMP","LMP DA"]]

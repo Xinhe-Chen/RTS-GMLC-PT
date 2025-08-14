@@ -27,12 +27,28 @@ df_lmp = pd.read_csv(lmp_path)
 lmp_data_all = df_lmp[params["bus_name"] + "_LMP"].to_numpy()
 lmp_data = lmp_data_all[0:24]
 
-# run the optimization
-m = determinstic_fossil_profit_opt(params, lmp_data)
+dispatch_path = os.path.join(os.getcwd(), "..", "Notebook", "Generator_Dispatch.csv")
+df_dispatch = pd.read_csv(dispatch_path)
+dispatch_data = df_dispatch["101_STEAM_3_Dispatch"].to_numpy()
 
-m.gen_101_STEAM_3_startup_shutdown.pprint()
+# run the optimization
+m = determinstic_fossil_profit_opt(params, lmp_data, dispatch_data, fixing_dispatch=True)
+
+m.period[1,16].pprint()
+# m.gen_101_STEAM_3_startup_shutdown.pprint()
 
 # solver = pyo.SolverFactory("gurobi_persistent")
 # solver.set_instance(m)
 # solver.options["MIPGap"] = 0.005
 # result = solver.solve(tee=True)
+
+
+        # @op_blocks.Expression(set_time)
+        # def multiple_startup_type_cost(_, t):
+        #     """
+        #     Calculate the startup cost based on the startup type.
+        #     """
+        #     return sum(
+        #         op_blocks[t].startup_type[k] * blk.startup_costs[k]
+        #         for k in startup_names
+        #     )
