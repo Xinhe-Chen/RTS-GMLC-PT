@@ -4,6 +4,11 @@ import pandas as pd
 import pyomo.environ as pyo
 import idaes.logger as idaeslog
 from determinstic_fossil_PT_opt import determinstic_fossil_profit_opt
+from pyomo.util.infeasible import (
+    log_infeasible_constraints,
+    log_infeasible_bounds,
+    log_close_to_bounds,
+)
 
 
 _logger = idaeslog.getLogger(__name__)
@@ -43,18 +48,22 @@ solver.set_instance(m)
 solver.options["MIPGap"] = 0.005
 result = solver.solve(tee=True)
 
-def save_results(result):
-    """
-    Check the results of the optimization.
-    """
-    result_dict = {}
-    result_dict["objective"] = pyo.value(result.objective)
-    for p in result.period:
-        result_dict[p] = {}
-        result_dict[p]["power"] = pyo.value(result.period[p].power)
-        result_dict[p]["vom"] = pyo.value(result.period[p].vom)
-        result_dict[p]["startup_cost"] = pyo.value(result.period[p].startup_cost)
-    return result_dict
+log_infeasible_bounds(result, tol=1e-8)
+log_infeasible_constraints(result, tol=1e-8)
+log_close_to_bounds(result, tol=1e-8)   # useful to see tight/active bounds
 
-with open("det_fossil_PT_fixed_dispatch_results.json", "w") as f:
-    json.dump(save_results(result), f)
+# def save_results(result):
+#     """
+#     Check the results of the optimization.
+#     """
+#     result_dict = {}
+#     result_dict["objective"] = pyo.value(result.objective)
+#     for p in result.period:
+#         result_dict[p] = {}
+#         result_dict[p]["power"] = pyo.value(result.period[p].power)
+#         result_dict[p]["vom"] = pyo.value(result.period[p].vom)
+#         result_dict[p]["startup_cost"] = pyo.value(result.period[p].startup_cost)
+#     return result_dict
+
+# with open("det_fossil_PT_fixed_dispatch_results.json", "w") as f:
+#     json.dump(save_results(result), f)
