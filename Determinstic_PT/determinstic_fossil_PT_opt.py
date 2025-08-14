@@ -153,7 +153,7 @@ def determinstic_fossil_profit_opt(params, lmp_data, dispatch_data, configuratio
         commodity="power",
         capacity=params["max_p"],
         startup_rate=params["min_p"]/params["max_p"],
-        shutdown_rate=params["min_p"]/params["max_p"],
+        shutdown_rate=params["max_p"]/params["max_p"],
         rampup_rate=1,
         rampdown_rate=1,
     )

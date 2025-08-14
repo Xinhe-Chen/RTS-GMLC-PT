@@ -44,26 +44,18 @@ solver.set_instance(m)
 solver.options["MIPGap"] = 0.005
 result = solver.solve(tee=True)
 
-if result.solver.termination_condition == TerminationCondition.infeasible:
-    gmodel = solver._solver_model    # the underlying gurobipy.Model
-    gmodel.computeIIS()
-    # Write the IIS to a file that flags the conflicting rows/bounds
-    # gmodel.write("infeasible.ilp")   # IIS file (recommended)
-    gmodel.write("infeasible.ilp.json")  # optional JSON if you prefer
-    print("Wrote IIS to infeasible.ilp")
+def save_results(result):
+    """
+    Check the results of the optimization.
+    """
+    result_dict = {}
+    result_dict["objective"] = pyo.value(result.objective)
+    for p in result.period:
+        result_dict[p] = {}
+        result_dict[p]["power"] = pyo.value(result.period[p].power)
+        result_dict[p]["vom"] = pyo.value(result.period[p].vom)
+        result_dict[p]["startup_cost"] = pyo.value(result.period[p].startup_cost)
+    return result_dict
 
-# def save_results(result):
-#     """
-#     Check the results of the optimization.
-#     """
-#     result_dict = {}
-#     result_dict["objective"] = pyo.value(result.objective)
-#     for p in result.period:
-#         result_dict[p] = {}
-#         result_dict[p]["power"] = pyo.value(result.period[p].power)
-#         result_dict[p]["vom"] = pyo.value(result.period[p].vom)
-#         result_dict[p]["startup_cost"] = pyo.value(result.period[p].startup_cost)
-#     return result_dict
-
-# with open("det_fossil_PT_fixed_dispatch_results.json", "w") as f:
-#     json.dump(save_results(result), f)
+with open("det_fossil_PT_fixed_dispatch_results.json", "w") as f:
+    json.dump(save_results(result), f)
