@@ -34,7 +34,7 @@ df_dispatch = pd.read_csv(dispatch_path)
 dispatch_data = df_dispatch["101_STEAM_3_Dispatch"].to_numpy()
 
 # run the optimization
-m = determinstic_fossil_profit_opt(params, lmp_data, dispatch_data, fixing_dispatch=True)
+m = determinstic_fossil_profit_opt(params, lmp_data, dispatch_data, fixing_dispatch=False)
 
 # m.period[1,16].pprint()
 # m.gen_101_STEAM_3_startup_shutdown.pprint()
