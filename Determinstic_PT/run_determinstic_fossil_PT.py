@@ -58,5 +58,5 @@ def save_results(m):
         result_dict[p[1]]["startup"] = pyo.value(m.period[p].gen_101_STEAM_3.startup)
     return result_dict
 
-with open("det_fossil_PT_fixed_dispatch_results.json", "w") as f:
+with open("det_fossil_PT_unfixed_dispatch_results.json", "w") as f:
     json.dump(save_results(m), f)
