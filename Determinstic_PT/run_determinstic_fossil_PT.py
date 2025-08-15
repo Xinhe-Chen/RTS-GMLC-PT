@@ -21,7 +21,7 @@ params = gen_dict["fossil"][gen_name]
 
 
 # read the LMP data from the csv file
-lmp_path = os.path.join(os.getcwd(), "..", "Data", "all_bus_lmp.csv")
+lmp_path = os.path.join(os.getcwd(), "..", "Notebook", "Bus_LMP.csv")
 
 df_lmp = pd.read_csv(lmp_path)
 
