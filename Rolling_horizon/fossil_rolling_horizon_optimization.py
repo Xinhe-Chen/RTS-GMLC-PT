@@ -118,7 +118,8 @@ def fossil_profit_opt_stochastic(scenario, horizon, planning_horizon, lmp_data, 
 
 
 # read the LMP data
-lmp_path = os.path.join("..", "Data", "all_bus_lmp.csv")
+# lmp_path = os.path.join("..", "Data", "all_bus_lmp.csv")
+lmp_path = os.path.join("..", "Notebook", "Bus_LMP.csv")
 df_lmp = pd.read_csv(lmp_path)
 lmp_data = df_lmp[gen_dict["gen_101_STEAM_3"]["bus_name"]+"_LMP"].to_numpy()
 
