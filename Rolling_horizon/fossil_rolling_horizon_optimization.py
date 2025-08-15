@@ -70,7 +70,7 @@ def fossil_profit_opt_scenario(forecaster, gen_dict):
         commodity="power",
         capacity=scenario_model.gen_design.gen_capacity,
         startup_rate=gen_dict["min_p"]/gen_dict["max_p"],
-        shutdown_rate=gen_dict["min_p"]/gen_dict["max_p"],
+        shutdown_rate=gen_dict["max_p"]/gen_dict["max_p"],
         rampdown_rate=min(gen_dict["ramp"], gen_dict["max_p"])/gen_dict["max_p"],
         rampup_rate=min(gen_dict["ramp"], gen_dict["max_p"])/gen_dict["max_p"],
     )
@@ -103,6 +103,7 @@ def fossil_profit_opt_stochastic(scenario, horizon, planning_horizon, lmp_data, 
                                                          flowsheet_func=build_fossil_gen_flowsheet,
                                                          flowsheet_options={"params": gen_dict},
                                                          commodity="power",
+                                                         revenue_streams=["elec_revenue"],
                                                          operational_costs=["vom", "startup_cost", "shutdown_cost"],
                                                          )
     # check the lmp_data
