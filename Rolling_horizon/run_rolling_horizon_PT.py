@@ -16,12 +16,12 @@ else:
     print("No generator provided. Set to default: 101_STEAM_3.")
     gen_name = "101_STEAM_3"
 
-specific_gen_dict = gen_dict["gen_" + gen_name]
+specific_gen_dict = {gen_name: gen_dict["gen_" + gen_name]}
 # read the LMP data
 # lmp_path = os.path.join("..", "Data", "all_bus_lmp.csv")
 lmp_path = os.path.join("..", "Notebook", "Bus_LMP.csv")
 df_lmp = pd.read_csv(lmp_path)
-lmp_data = df_lmp[specific_gen_dict["bus_name"]+"_LMP"].to_numpy()
+lmp_data = df_lmp[specific_gen_dict[gen_name]["bus_name"]+"_LMP"].to_numpy()
 
 # define the forecaster
 forecaster = RHPTForecaster(price_signal=lmp_data,
@@ -37,7 +37,7 @@ solver = "gurobi"
 opt_solver = pyo.SolverFactory(solver)
 results_dict = {}
 operation_var_name = ["op_mode", "power"]
-initial_state = original_initial_state["gen_" + gen_name]
+initial_state = {gen_name: original_initial_state["gen_" + gen_name]}
 for i in range(0, period):
     _logger.info(f"Building price-taker optimization for period {i}.")
     # forecast the price signal at t = 0

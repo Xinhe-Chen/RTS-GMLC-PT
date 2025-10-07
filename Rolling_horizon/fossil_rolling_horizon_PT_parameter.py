@@ -18,14 +18,14 @@ gen_dict = {}
 gen_names = [i for i in fossil_gens.keys()]  # all fossil generators
 for gen_name in gen_names:
     individual_gen_dict = fossil_gens[gen_name]
-    individual_gen_dict["name"] = "gen_" + individual_gen_dict["name"]
-    gen_dict[individual_gen_dict["name"]] = individual_gen_dict
+    # individual_gen_dict["name"] = "gen_" + individual_gen_dict["name"]
+    gen_dict["gen_" + individual_gen_dict["name"]] = individual_gen_dict
 
 # make a pseduo initial state
 original_initial_state = {}
 for idx, key in zip(range(len(gen_dict)), gen_dict.keys()):
     initial_state = {
-        "name": key,
+        "name": gen_dict[key]["name"],
         "up_time": 0,
         "down_time": 100,
         "min_up_time": gen_dict[key]["min_up_time"],
