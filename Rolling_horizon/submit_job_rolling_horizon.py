@@ -1,4 +1,5 @@
 import os
+import json
 from fossil_rolling_horizon_PT_parameter import period, scenario, horizon
 
 this_file_path = os.path.dirname(os.path.realpath(__file__))
@@ -27,7 +28,7 @@ def submit_job(
             # + "export LD_LIBRARY_PATH=~/.conda/envs/regen/lib:$LD_LIBRARY_PATH \n"
             + "module load gurobi\n"
             # + "module load ipopt/3.14.2 \n"
-            + f"python fossil_rolling_horizon_optimization.py"
+            + f"python run_rolling_horizon.py {gen_name}\n"
         )
 
     os.system(f"qsub {file_name}")
@@ -35,5 +36,13 @@ def submit_job(
 
 if __name__ == "__main__":
 
+    # with open(os.path.join(this_file_path, "..", "Data", "gen_dict.json"), "r") as f:
+    #     gen_dict = json.load(f)
+    
+    # fossil_gen_names = list(gen_dict["fossil"].keys())
+    # for gen_name in fossil_gen_names:
+    #     submit_job(gen_name, period, scenario, horizon)
+
+    # Example to submit a job
     gen_name = "101_STEAM_3"
     submit_job(gen_name, period, scenario, horizon)
