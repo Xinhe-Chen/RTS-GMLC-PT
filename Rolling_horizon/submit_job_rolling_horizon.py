@@ -36,13 +36,13 @@ def submit_job(
 
 if __name__ == "__main__":
 
-    # with open(os.path.join(this_file_path, "..", "Data", "gen_dict.json"), "r") as f:
-    #     gen_dict = json.load(f)
+    with open(os.path.join(this_file_path, "..", "Data", "gen_dict.json"), "r") as f:
+        gen_dict = json.load(f)
     
-    # fossil_gen_names = list(gen_dict["fossil"].keys())
-    # for gen_name in fossil_gen_names:
-    #     submit_job(gen_name, period, scenario, horizon)
+    fossil_gen_names = list(gen_dict["fossil"].keys())
+    for gen_name in fossil_gen_names:
+        submit_job(gen_name, period, scenario, horizon)
 
     # Example to submit a job
-    gen_name = "101_STEAM_3"
-    submit_job(gen_name, period, scenario, horizon)
+    # gen_name = "101_STEAM_3"
+    # submit_job(gen_name, period, scenario, horizon)
