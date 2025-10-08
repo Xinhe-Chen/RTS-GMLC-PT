@@ -34,6 +34,7 @@ df_dispatch = pd.read_csv(dispatch_path)
 dispatch_data = df_dispatch["101_STEAM_3_Dispatch"].to_numpy()
 
 # run the optimization
+_logger.info(f"Building and solving model for generator: {gen_name}")
 m = determinstic_fossil_profit_opt(params, lmp_data, dispatch_data, fixing_dispatch=False)
 
 # m.period[1,16].pprint()
@@ -43,6 +44,14 @@ solver = pyo.SolverFactory("gurobi_persistent")
 solver.set_instance(m)
 solver.options["MIPGap"] = 0.005
 result = solver.solve(tee=True)
+
+# checkt the solver status
+if result.solver.termination_condition == TerminationCondition.optimal:
+    _logger.info(f"Optimal solution found for generator: {gen_name}")
+elif result.solver.termination_condition == TerminationCondition.infeasible:
+    _logger.warning(f"Infeasible solution for generator: {gen_name}")
+else:
+    _logger.warning(f"Solver ended with condition {result.solver.termination_condition} for generator: {gen_name}")
 
 def save_results(m):
     """
