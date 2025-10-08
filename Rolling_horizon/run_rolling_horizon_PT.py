@@ -63,6 +63,6 @@ for i in range(0, period):
     results_dict[f"period_{i}"] = res_dict
 
 # save results
-with open(f"results/test_{period}_{gen_name}_result.json", "w") as f:
+with open(f"results/Sweep_{period}_{gen_name}_result.json", "w") as f:
     json.dump(results_dict, f)
 # print(results_dict)
