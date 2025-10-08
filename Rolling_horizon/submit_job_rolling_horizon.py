@@ -28,7 +28,7 @@ def submit_job(
             # + "export LD_LIBRARY_PATH=~/.conda/envs/regen/lib:$LD_LIBRARY_PATH \n"
             + "module load gurobi\n"
             # + "module load ipopt/3.14.2 \n"
-            + f"python run_rolling_horizon.py {gen_name}\n"
+            + f"python run_rolling_horizon_PT.py {gen_name}\n"
         )
 
     os.system(f"qsub {file_name}")
