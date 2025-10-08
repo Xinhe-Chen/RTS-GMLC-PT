@@ -15,7 +15,7 @@ Make the fossil generator parameters
 """
 Load the fossil generator parameters
 """
-gen_dict_path = os.path.join(os.getcwd(), "Data", "gen_dict.json")
+gen_dict_path = os.path.join(os.getcwd(), "..", "Data", "gen_dict.json")
 with open(gen_dict_path, "rb") as f:
     all_gen_dict = json.load(f)
 
@@ -26,7 +26,7 @@ These part is for extracting LMPs from the bus_detail.csv
 #     if idx == 0:
 #         make_lmp_csv(lmp_path=None, bus_details_path="Data/bus_detail.csv", bus_name=fossil_gens[key]["bus_name"])
 #     else:
-#         make_lmp_csv(lmp_path="Data/all_bus_lmp.csv", bus_details_path="Data/bus_detail.csv", bus_name=fossil_gens[key]["bus_name"])
+#         make_lmp_csv(lmp_path="../Data/all_bus_lmp.csv", bus_details_path="../Data/bus_detail.csv", bus_name=fossil_gens[key]["bus_name"])
 
 """
 Select a generator for testing
@@ -35,7 +35,7 @@ fossil_gens = copy.deepcopy(all_gen_dict["fossil"])
 # bus_id = 101
 gen_name = sys.argv[1]
 gen_dict = fossil_gens[gen_name]
-lmp_path = os.path.join("Data", "all_bus_lmp.csv")
+lmp_path = os.path.join("..", "Data", "all_bus_lmp.csv")
 m = fossil_profit_opt(gen_dict, lmp_path,)
 # m.period[10].pprint()
 # lmp = [pyo.value(getattr(m.period[t], "gen_"+gen_dict["name"]).LMP) for t in range(1,10)]

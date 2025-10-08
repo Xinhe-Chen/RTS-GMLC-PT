@@ -1,9 +1,6 @@
-import numpy as np
-import pandas as pd
 import pyomo.environ as pyo
 import idaes.logger as idaeslog
 from idaes.apps.grid_integration import DesignModel, OperationModel
-from idaes.core.util.config import ConfigurationError
 from util_gen_model import build_gen_design_model, build_fossil_gen_operation_model
 from general_gen_model import PriceTakerRTSGMLC
 
