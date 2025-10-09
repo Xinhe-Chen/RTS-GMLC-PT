@@ -37,11 +37,11 @@ def submit_job(gen_name, test_run=True):
 
 if __name__ == "__main__":
     
-    # gen_path = os.path.join("..", "Data", "gen_dict.json")
-    # with open(gen_path, 'rb') as f:
-    #     gen_dict = json.load(f)
-    # gen_names = list(gen_dict["fossil"].keys())
-    # for n in gen_names:
-    #     submit_job(n, test_run=False)
+    gen_path = os.path.join("..", "Data", "gen_dict.json")
+    with open(gen_path, 'rb') as f:
+        gen_dict = json.load(f)
+    gen_names = list(gen_dict["fossil"].keys())
+    for n in gen_names:
+        submit_job(n, test_run=False)
 
-    submit_job("101_STEAM_3", test_run=True)
+    # submit_job("101_STEAM_3", test_run=True)
