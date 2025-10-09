@@ -83,8 +83,8 @@ def startup_shutdown_constraints(
     blk.startup_duration = pyo.Param(key_list, initialize = {key_list[0]: gen_dict['start_up_time_hot'], key_list[1]: gen_dict['start_up_time_warm'], key_list[2]: gen_dict['start_up_time_cold']})
     blk.startup_cost_at_t = pyo.Var(set_time, initialize = {t:0 for t in set_time})
     blk.shutdown_cost_at_t = pyo.Var(set_time, initialize = {t:0 for t in set_time} )
-    blk.fixed_startup_cost = pyo.Param(initialize = 0, mutuable = True)
-    blk.fixed_shutdown_cost = pyo.Param(initialize = 0, mutuable = True)
+    blk.fixed_startup_cost = pyo.Param(initialize = 0, mutable = True)
+    blk.fixed_shutdown_cost = pyo.Param(initialize = 0, mutable = True)
 
     @blk.Constraint(set_time)
     def binary_relationship_con(_, t):
