@@ -32,15 +32,11 @@ These part is for extracting LMPs from the bus_detail.csv
 Select a generator for testing
 """
 fossil_gens = copy.deepcopy(all_gen_dict["fossil"])
-# bus_id = 101
 gen_name = sys.argv[1]
+mkt = sys.argv[2]  # "RT" or "DA"
 gen_dict = fossil_gens[gen_name]
-mkt = "DA"  # "RT" or "DA"
 lmp_path = os.path.join("..", "Notebook", "Bus_LMP.csv")
 m = fossil_profit_opt(gen_dict, lmp_path, mkt)
-# m.period[10].pprint()
-# lmp = [pyo.value(getattr(m.period[t], "gen_"+gen_dict["name"]).LMP) for t in range(1,10)]
-# print(f"LMP: {lmp}")
 
 solver = pyo.SolverFactory("gurobi")
 # solver.set_instance(m)
