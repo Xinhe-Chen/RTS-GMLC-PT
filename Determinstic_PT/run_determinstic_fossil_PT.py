@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import pandas as pd
 import pyomo.environ as pyo
@@ -6,19 +7,23 @@ import idaes.logger as idaeslog
 from determinstic_fossil_PT_opt import determinstic_fossil_profit_opt
 from pyomo.opt import TerminationCondition
 
-
 _logger = idaeslog.getLogger(__name__)
 
-# read the generartor parameters from the json file
+if len(sys.argv) > 1:
+    gen_name = sys.argv[1]
+    print(f"The generator is: {gen_name}")
+else:
+    print("No generator provided. Set to default: 101_STEAM_3.")
+    gen_name = "101_STEAM_3"
+
+
+# read the generator parameters from the json file
 gen_path = os.path.join(os.getcwd(), "..", "Data", "gen_dict.json")
 
 with open(gen_path, "r") as f:
     gen_dict = json.load(f)
 
-gen_name = "101_STEAM_3"
-
 params = gen_dict["fossil"][gen_name]
-
 
 # read the LMP data from the csv file
 lmp_path = os.path.join(os.getcwd(), "..", "Notebook", "Bus_LMP.csv")
@@ -26,12 +31,11 @@ lmp_path = os.path.join(os.getcwd(), "..", "Notebook", "Bus_LMP.csv")
 df_lmp = pd.read_csv(lmp_path)
 
 lmp_data_all = df_lmp[params["bus_name"] + "_LMP"].to_numpy()
-# lmp_data = lmp_data_all[0:24]
 lmp_data = lmp_data_all.copy()
 
 dispatch_path = os.path.join(os.getcwd(), "..", "Notebook", "Generator_Dispatch.csv")
 df_dispatch = pd.read_csv(dispatch_path)
-dispatch_data = df_dispatch["101_STEAM_3_Dispatch"].to_numpy()
+dispatch_data = df_dispatch[gen_name + "_Dispatch"].to_numpy()
 
 # run the optimization
 _logger.info(f"Building and solving model for generator: {gen_name}")
@@ -61,10 +65,10 @@ def save_results(m):
     result_dict["objective"] = pyo.value(m.obj)
     for p in m.period:
         result_dict[p[1]] = {}
-        # result_dict[p]["power"] = pyo.value(m.period[p].power_to_grid)
+        result_dict[p[1]]["power"] = pyo.value(m.period[p].power_to_grid)
         result_dict[p[1]]["rev"] = pyo.value(m.period[p].elec_revenue)
-        result_dict[p[1]]["vom"] = pyo.value(m.period[p].gen_101_STEAM_3.vom)
-        result_dict[p[1]]["startup"] = pyo.value(m.period[p].gen_101_STEAM_3.startup)
+        result_dict[p[1]]["vom"] = pyo.value(getattr(m.period[p], f"gen_{gen_name}.vom"))
+        result_dict[p[1]]["startup"] = pyo.value(getattr(m.period[p], f"gen_{gen_name}.startup"))
     return result_dict
 
 with open(f"det_fossil_{gen_name}_PT_unfixed_dispatch_results.json", "w") as f:
