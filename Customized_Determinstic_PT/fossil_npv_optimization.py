@@ -25,9 +25,9 @@ def build_fossil_gen_flowsheet(m, gen_des_blk, gen_dict):
     m.elec_revenue = pyo.Expression(expr=getattr(m, "gen_"+gen_dict["name"]).LMP * m.power_to_grid)
 
 
-def fossil_profit_opt(gen_dict, lmp_path, configuration=None):
+def fossil_profit_opt(gen_dict, lmp_path, mkt="RT", configuration=None):
     """Builds and returns an instance of the price-taker model"""
-    m = PriceTakerRTSGMLC(gen_dict=gen_dict, lmp_path=lmp_path)
+    m = PriceTakerRTSGMLC(gen_dict=gen_dict, lmp_path=lmp_path, mkt=mkt)
 
     # Appending the data to the model
     # m.append_lmp_data(lmp_data=lmp_data)

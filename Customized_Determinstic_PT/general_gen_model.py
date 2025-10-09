@@ -86,10 +86,11 @@ class PriceTakerRTSGMLC(ConcreteModel):
     '''
     A simplified price-taker class comparing to idaes/apps/grid_integration/pricetaker/price_taker_model.py
     '''
-    def __init__(self, gen_dict, lmp_path, *args, **kwds):
+    def __init__(self, gen_dict, lmp_path, mkt="RT", *args, **kwds):
         super().__init__(*args, **kwds)
         self.gen_dict = gen_dict
         self.lmp_path = lmp_path
+        self.mkt = mkt
         self._has_hourly_cashflows = False
         self._has_overall_cashflows = False
         self._linking_constraint_counter = 1
@@ -100,7 +101,12 @@ class PriceTakerRTSGMLC(ConcreteModel):
         Read the csv file to get lmp.
         '''
         df_lmp = pd.read_csv(self.lmp_path)
-        lmp_data = df_lmp[self.gen_dict["bus_name"]+"_LMP"]
+        if self.mkt == "RT":
+            lmp_data = df_lmp[self.gen_dict["bus_name"]+"_LMP"]
+        if self.mkt == "DA":
+            lmp_data = df_lmp[self.gen_dict["bus_name"]+"_LMP DA"]
+        else:
+            raise ValueError(f"Market type {self.mkt} is not supported. Please use RT or DA.")
 
         return lmp_data
     
