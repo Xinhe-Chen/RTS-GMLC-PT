@@ -4,11 +4,11 @@ This folder is for the price-taker optimization for fossil generators in the RTS
 
 ## Package Used
 
-The optimization model uses the following package:  
+The optimization model uses the following package:
 
 👉 [IDAES Price-Taker Module (Xinhe-Chen Repo)](https://github.com/Xinhe-Chen/idaes-pse/tree/various_startup/idaes/apps/grid_integration/pricetaker)
 
 
 
-The branch at Xinhe's repo supports multiple types of startup (cold, warm and hot). Currently, it is merged into the idaes main.
+The branch at Xinhe's repo supports multiple types of startup (cold, warm and hot). Currently, it is not merged into the idaes main. The version of idaes used is 2.8.0
 
