@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import torch
 from torch_geometric.data import Data, InMemoryDataset
+from torch.nn.functional import mse_loss
 
 
 # define the root path of all the csv files 
@@ -91,4 +92,4 @@ for t in range(T):
     )
     graphs.append(data)
 
-print(graphs[0])  # print the first graph for verification
+print(graphs[0].x.shape)  # print the first graph for verification
